@@ -1,34 +1,45 @@
 {
     "nodes": [
       {
-        "parameters": {
-          "pollTimes": {
-            "item": [
-              {
-                "mode": "everyHour"
-              }
-            ]
-          },
-          "triggerOn": "specificFolder",
-          "folderToWatch": {
-            "__rl": true,
-            "value": "https://drive.google.com/drive/u/0/folders/1SyTKcZKT-Ht1WVbr2ZYBCSsI_TtpKve3",
-            "mode": "url"
-          },
-          "event": "fileCreated",
-          "options": {}
-        },
-        "type": "n8n-nodes-base.googleDriveTrigger",
+        "parameters": {},
+        "id": "56d08bdf-afa2-429d-b031-727a365360e6",
+        "name": "Execute workflow",
+        "type": "n8n-nodes-base.manualTrigger",
         "typeVersion": 1,
         "position": [
-          -528,
-          -48
+          -1200,
+          1536
+        ]
+      },
+      {
+        "parameters": {
+          "resource": "fileFolder",
+          "queryString": "blogPostContent",
+          "returnAll": true,
+          "filter": {
+            "folderId": {
+              "__rl": true,
+              "value": "13QWBCMlAPeTd2UKpTDOsAGFefJBmJFIA",
+              "mode": "list",
+              "cachedResultName": "blogcontent",
+              "cachedResultUrl": "https://drive.google.com/drive/folders/13QWBCMlAPeTd2UKpTDOsAGFefJBmJFIA"
+            },
+            "whatToSearch": "files"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleDrive",
+        "typeVersion": 3,
+        "position": [
+          -288,
+          1408
         ],
-        "id": "38ca3be8-2a1a-4899-9b3c-2b7f32a6129d",
-        "name": "Google Drive Trigger",
+        "id": "ce0223e8-76f4-4f1d-8c6a-0e4338515bef",
+        "name": "Search for blogPostContent snippet",
+        "alwaysOutputData": true,
         "credentials": {
           "googleDriveOAuth2Api": {
-            "id": "qkHDZtvy6mpvslUS",
+            "id": "2vg1fSo8hu2qFmjI",
             "name": "Google Drive account"
           }
         }
@@ -42,33 +53,372 @@
         "type": "n8n-nodes-base.googleDrive",
         "typeVersion": 3,
         "position": [
-          -304,
-          -48
+          -96,
+          1408
         ],
-        "id": "79dccbd3-0d17-4973-a788-2e95dbad213b",
-        "name": "Download file from Google Drive",
+        "id": "831e9323-d28f-4f6e-be71-272bec5fe94d",
+        "name": "Download snippet from Google Drive",
         "credentials": {
           "googleDriveOAuth2Api": {
-            "id": "qkHDZtvy6mpvslUS",
+            "id": "2vg1fSo8hu2qFmjI",
             "name": "Google Drive account"
           }
         }
       },
       {
         "parameters": {
-          "operation": "formatDate",
-          "date": "={{ $json.createdTime }}",
-          "format": "custom",
-          "customFormat": "dd-MM-yyyy/H:mm",
+          "resource": "file",
+          "operation": "get",
+          "owner": "chefmatteo",
+          "repository": "Examify.pro-BlogPostContent",
+          "filePath": "data/blogPostContent.ts",
+          "additionalParameters": {}
+        },
+        "id": "a120986a-fd8b-49fa-9b49-5b7e1770a548",
+        "name": "Get GitHub blogPostContent.ts",
+        "type": "n8n-nodes-base.github",
+        "typeVersion": 1,
+        "position": [
+          96,
+          1424
+        ],
+        "webhookId": "73e2fcde-3956-43c7-aca9-f7237fd4ff11",
+        "credentials": {
+          "githubApi": {
+            "id": "xPxf1slGiyx1TGdN",
+            "name": "chefmatteo_testing_blog_integration"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "functionCode": "// Decode base64 content from GitHub\nconst githubContent = Buffer.from($input.first().json.content, 'base64').toString('utf8');\nreturn [{ json: { githubContent, fileName: 'blogPostContent.ts' } }];"
+        },
+        "id": "68ff1718-e092-4896-8a03-a9dab4341513",
+        "name": "Decode GitHub Content",
+        "type": "n8n-nodes-base.function",
+        "typeVersion": 1,
+        "position": [
+          288,
+          1424
+        ]
+      },
+      {
+        "parameters": {
+          "functionCode": "// Validate snippet format\nconst snippet = Buffer.from($input.first().json.data, 'base64').toString('utf8');\nif (!snippet.includes('export const newBlogPost')) {\n  throw new Error('Snippet must contain \"export const newBlogPost\"');\n}\n\n// Check for required fields\nconst requiredFields = ['slug', 'title', 'date', 'content'];\nconst missingFields = requiredFields.filter(field => !snippet.includes(field));\n\nif (missingFields.length > 0) {\n  throw new Error(`Missing required fields: ${missingFields.join(', ')}`);\n}\n\nreturn [{ json: { validSnippet: true, snippet, fileName: 'blogPostContent-snippet' } }];"
+        },
+        "id": "55fd0644-028b-45f1-81e2-204a9c918fda",
+        "name": "Validate Snippet",
+        "type": "n8n-nodes-base.function",
+        "typeVersion": 1,
+        "position": [
+          96,
+          1280
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "string": [
+              {
+                "value1": "={{ $('Validate Snippet').item.json.snippet }}",
+                "operation": "equals",
+                "value2": "={{ $('Decode GitHub Content').item.json.githubContent }}"
+              }
+            ]
+          }
+        },
+        "id": "7b01111a-5a1f-469d-94be-eb57e95f6c79",
+        "name": "Compare Content",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 1,
+        "position": [
+          480,
+          1408
+        ]
+      },
+      {
+        "parameters": {
+          "functionCode": "// Parse existing GitHub content and merge with new snippet\nconst existingContent = $('Decode GitHub Content').item.json.githubContent;\nconst newSnippet = $('Validate Snippet').item.json.snippet;\n\n// Extract blogPostContent array from existing file\nconst existingMatch = existingContent.match(/export const blogPostContent = (\\[.*?\\]);/s);\nconst existingArray = existingMatch ? JSON.parse(existingMatch[1]) : [];\n\n// Extract new blog post from snippet\nconst snippetMatch = newSnippet.match(/export const newBlogPost = (\\{.*?\\});/s);\nconst newBlogPost = snippetMatch ? JSON.parse(snippetMatch[1]) : null;\n\nif (!newBlogPost) {\n  throw new Error('Invalid snippet format - could not extract newBlogPost');\n}\n\n// Check for duplicate slug\nconst existingSlugs = existingArray.map(post => post.slug);\nif (existingSlugs.includes(newBlogPost.slug)) {\n  throw new Error(`Blog post with slug '${newBlogPost.slug}' already exists`);\n}\n\n// Merge content\nconst mergedArray = [...existingArray, newBlogPost];\n\n// Generate updated TypeScript file\nconst updatedContent = `export const blogPostContent = ${JSON.stringify(mergedArray, null, 2)};`;\n\nreturn [{ json: { mergedContent: updatedContent, newPostCount: mergedArray.length, addedSlug: newBlogPost.slug } }];"
+        },
+        "id": "20a26a52-a6c6-4cae-bfb1-7981f85eef3c",
+        "name": "Merge Content",
+        "type": "n8n-nodes-base.function",
+        "typeVersion": 1,
+        "position": [
+          672,
+          1296
+        ]
+      },
+      {
+        "parameters": {
+          "functionCode": "// Check for potential issues in merged content\nconst mergedContent = $input.first().json.mergedContent;\n\n// Validate TypeScript syntax\nif (!mergedContent.includes('export const blogPostContent')) {\n  throw new Error('Merged content missing required export statement');\n}\n\n// Check for valid JSON structure\ntry {\n  const contentMatch = mergedContent.match(/export const blogPostContent = (\\[.*?\\]);/s);\n  if (contentMatch) {\n    JSON.parse(contentMatch[1]);\n  }\n} catch (error) {\n  throw new Error('Invalid JSON structure in merged content');\n}\n\nreturn [{ json: { safeContent: true, contentLength: mergedContent.length } }];"
+        },
+        "id": "3d233541-115f-4fce-a379-3441f2622681",
+        "name": "Content Safety Check",
+        "type": "n8n-nodes-base.function",
+        "typeVersion": 1,
+        "position": [
+          864,
+          1296
+        ]
+      },
+      {
+        "parameters": {
+          "resource": "file",
+          "operation": "edit",
+          "owner": "chefmatteo",
+          "repository": "Examify.pro-BlogPostContent",
+          "filePath": "data/blogPostContent.ts",
+          "fileContent": "[empty]",
+          "commitMessage": "Auto-merge new blog post from Google Drive snippet: {{ $json.formattedDate }}"
+        },
+        "id": "55cbb859-ede2-4a22-91e9-79500ff035b2",
+        "name": "Update GitHub with Merged Content",
+        "type": "n8n-nodes-base.github",
+        "typeVersion": 1,
+        "position": [
+          1056,
+          1296
+        ],
+        "webhookId": "a8d0f9e6-87eb-4578-8ce6-9e6f3fa300ae",
+        "alwaysOutputData": true,
+        "credentials": {
+          "githubApi": {
+            "id": "xPxf1slGiyx1TGdN",
+            "name": "chefmatteo_testing_blog_integration"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "functionCode": "// Log successful merge\nconst addedSlug = $('Merge Content').item.json.addedSlug;\nconst newPostCount = $('Merge Content').item.json.newPostCount;\n\nreturn [{ json: { \n  message: `Successfully merged new blog post: ${addedSlug}`,\n  totalPosts: newPostCount,\n  timestamp: new Date().toISOString(),\n  action: 'merge_success'\n} }];"
+        },
+        "id": "62c4ffa2-2b52-4174-96e2-599373c43089",
+        "name": "Log Success",
+        "type": "n8n-nodes-base.function",
+        "typeVersion": 1,
+        "position": [
+          1248,
+          1296
+        ]
+      },
+      {
+        "parameters": {
+          "functionCode": "// Log no action needed\nreturn [{ json: { \n  message: 'Content is identical - no update needed',\n  timestamp: new Date().toISOString(),\n  action: 'no_action'\n} }];"
+        },
+        "id": "34b81544-0507-4028-a8c6-33f9f2322b12",
+        "name": "Log No Action",
+        "type": "n8n-nodes-base.function",
+        "typeVersion": 1,
+        "position": [
+          672,
+          1520
+        ]
+      },
+      {
+        "parameters": {
+          "resource": "fileFolder",
+          "queryString": "blogPreviews-snippet",
+          "returnAll": true,
+          "filter": {
+            "folderId": {
+              "__rl": true,
+              "value": "14Wlp8CJ8sl25dJTWeXIeWkZTw-nmiOX_",
+              "mode": "list",
+              "cachedResultName": "blogpreview",
+              "cachedResultUrl": "https://drive.google.com/drive/folders/14Wlp8CJ8sl25dJTWeXIeWkZTw-nmiOX_"
+            },
+            "whatToSearch": "files"
+          },
           "options": {}
         },
-        "id": "ec9a3271-49a7-4d78-a054-aa6fe2804ad7",
-        "name": "Format date",
-        "type": "n8n-nodes-base.dateTime",
-        "typeVersion": 2,
+        "type": "n8n-nodes-base.googleDrive",
+        "typeVersion": 3,
         "position": [
-          -128,
-          -48
+          -288,
+          1616
+        ],
+        "id": "89f1c2da-a640-4c5f-9be3-7f31e5b2b361",
+        "name": "Search for blogPreviews snippet",
+        "alwaysOutputData": true,
+        "credentials": {
+          "googleDriveOAuth2Api": {
+            "id": "2vg1fSo8hu2qFmjI",
+            "name": "Google Drive account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "download",
+          "fileId": "={{ $json.id }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleDrive",
+        "typeVersion": 3,
+        "position": [
+          -96,
+          1616
+        ],
+        "id": "e2881ca7-95f0-47b3-89fe-a85a60d6e2d8",
+        "name": "Download preview snippet from Google Drive",
+        "credentials": {
+          "googleDriveOAuth2Api": {
+            "id": "2vg1fSo8hu2qFmjI",
+            "name": "Google Drive account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "file",
+          "operation": "get",
+          "owner": "chefmatteo",
+          "repository": "Examify.pro-BlogPostContent",
+          "filePath": "data/blogPreviews.ts",
+          "additionalParameters": {}
+        },
+        "id": "0b9c534d-34af-47f4-8ea6-fa5cbe176cfa",
+        "name": "Get GitHub blogPreviews.ts",
+        "type": "n8n-nodes-base.github",
+        "typeVersion": 1,
+        "position": [
+          96,
+          1584
+        ],
+        "webhookId": "07b62aa6-12b2-42a0-8be4-25a06e2dedde",
+        "credentials": {
+          "githubApi": {
+            "id": "xPxf1slGiyx1TGdN",
+            "name": "chefmatteo_testing_blog_integration"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "functionCode": "// Decode base64 content from GitHub\nconst githubContent = Buffer.from($input.first().json.content, 'base64').toString('utf8');\nreturn [{ json: { githubContent, fileName: 'blogPreviews.ts' } }];"
+        },
+        "id": "efa78b12-9bba-4f1c-9d84-203ff03e316e",
+        "name": "Decode GitHub Previews",
+        "type": "n8n-nodes-base.function",
+        "typeVersion": 1,
+        "position": [
+          288,
+          1616
+        ],
+        "disabled": true
+      },
+      {
+        "parameters": {
+          "functionCode": "// Validate preview snippet format\nconst snippet = Buffer.from($input.first().json.data, 'base64').toString('utf8');\n\n// Check for required export\nif (!snippet.includes('export const newBlogPreview')) {\n  throw new Error('Preview snippet must contain \"export const newBlogPreview\"');\n}\n\n// Check for required fields\nconst requiredFields = ['slug', 'title', 'date', 'excerpt'];\nconst missingFields = requiredFields.filter(field => !snippet.includes(field));\n\nif (missingFields.length > 0) {\n  throw new Error(`Missing required fields: ${missingFields.join(', ')}`);\n}\n\nreturn [{ json: { validSnippet: true, snippet, fileName: 'blogPreviews-snippet' } }];"
+        },
+        "id": "27bd944a-2431-4bc5-ab3d-e8960773f306",
+        "name": "Validate Preview Snippet",
+        "type": "n8n-nodes-base.function",
+        "typeVersion": 1,
+        "position": [
+          96,
+          1744
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "string": [
+              {
+                "value1": "={{ $('Validate Preview Snippet').item.json.snippet }}",
+                "operation": "equals",
+                "value2": "={{ $('Decode GitHub Previews').item.json.githubContent }}"
+              }
+            ]
+          }
+        },
+        "id": "80f871aa-cf77-493c-ba5c-370369b44360",
+        "name": "Compare Preview Content",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 1,
+        "position": [
+          480,
+          1616
+        ]
+      },
+      {
+        "parameters": {
+          "functionCode": "// Parse existing GitHub content and merge with new preview snippet\nconst existingContent = $('Decode GitHub Previews').item.json.githubContent;\nconst newSnippet = $('Validate Preview Snippet').item.json.snippet;\n\n// Extract blogPreviews array from existing file\nconst existingMatch = existingContent.match(/export const blogPreviews = (\\[.*?\\]);/s);\nconst existingArray = existingMatch ? JSON.parse(existingMatch[1]) : [];\n\n// Extract new blog preview from snippet\nconst snippetMatch = newSnippet.match(/export const newBlogPreview = (\\{.*?\\});/s);\nconst newBlogPreview = snippetMatch ? JSON.parse(snippetMatch[1]) : null;\n\nif (!newBlogPreview) {\n  throw new Error('Invalid snippet format - could not extract newBlogPreview');\n}\n\n// Check for duplicate slug\nconst existingSlugs = existingArray.map(preview => preview.slug);\nif (existingSlugs.includes(newBlogPreview.slug)) {\n  throw new Error(`Blog preview with slug '${newBlogPreview.slug}' already exists`);\n}\n\n// Merge content\nconst mergedArray = [...existingArray, newBlogPreview];\n\n// Generate updated TypeScript file\nconst updatedContent = `export const blogPreviews = ${JSON.stringify(mergedArray, null, 2)};`;\n\nreturn [{ json: { mergedContent: updatedContent, newPreviewCount: mergedArray.length, addedSlug: newBlogPreview.slug } }];"
+        },
+        "id": "6803ce20-bc45-401b-bced-4516a78f8878",
+        "name": "Merge Preview Content",
+        "type": "n8n-nodes-base.function",
+        "typeVersion": 1,
+        "position": [
+          672,
+          1712
+        ]
+      },
+      {
+        "parameters": {
+          "functionCode": "// Check for potential issues in merged preview content\nconst mergedContent = $input.first().json.mergedContent;\n\n// Validate TypeScript syntax\nif (!mergedContent.includes('export const blogPreviews')) {\n  throw new Error('Merged preview content missing required export statement');\n}\n\n// Check for valid JSON structure\ntry {\n  const contentMatch = mergedContent.match(/export const blogPreviews = (\\[.*?\\]);/s);\n  if (contentMatch) {\n    JSON.parse(contentMatch[1]);\n  }\n} catch (error) {\n  throw new Error('Invalid JSON structure in merged preview content');\n}\n\nreturn [{ json: { safeContent: true, contentLength: mergedContent.length } }];"
+        },
+        "id": "85483eb6-2646-44ae-9d77-c72eb7eece51",
+        "name": "Preview Safety Check",
+        "type": "n8n-nodes-base.function",
+        "typeVersion": 1,
+        "position": [
+          864,
+          1712
+        ]
+      },
+      {
+        "parameters": {
+          "resource": "file",
+          "operation": "edit",
+          "owner": "chefmatteo",
+          "repository": "Examify.pro-BlogPostContent",
+          "filePath": "data/blogPreviews.ts",
+          "fileContent": "[empty]",
+          "commitMessage": "Auto-merge new blog preview from Google Drive snippet: {{ $json.formattedDate }}"
+        },
+        "id": "cd09d5c2-c787-4d24-8d4e-4ad3c45f101e",
+        "name": "Update GitHub with Merged Preview",
+        "type": "n8n-nodes-base.github",
+        "typeVersion": 1,
+        "position": [
+          1056,
+          1712
+        ],
+        "webhookId": "45d18e49-4ac4-471b-af2e-7eec33da7075",
+        "credentials": {
+          "githubApi": {
+            "id": "xPxf1slGiyx1TGdN",
+            "name": "chefmatteo_testing_blog_integration"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "functionCode": "// Log successful preview merge\nconst addedSlug = $('Merge Preview Content').item.json.addedSlug;\nconst newPreviewCount = $('Merge Preview Content').item.json.newPreviewCount;\n\nreturn [{ json: { \n  message: `Successfully merged new blog preview: ${addedSlug}`,\n  totalPreviews: newPreviewCount,\n  timestamp: new Date().toISOString(),\n  action: 'preview_merge_success'\n} }];"
+        },
+        "id": "a342c01b-36d3-4e54-b933-a18a95d3fbee",
+        "name": "Log Preview Success",
+        "type": "n8n-nodes-base.function",
+        "typeVersion": 1,
+        "position": [
+          1248,
+          1712
+        ]
+      },
+      {
+        "parameters": {
+          "functionCode": "// Log no action needed for preview\nreturn [{ json: { \n  message: 'Preview content is identical - no update needed',\n  timestamp: new Date().toISOString(),\n  action: 'preview_no_action'\n} }];"
+        },
+        "id": "d3dfa920-aaf6-43e2-9960-4580c914ff66",
+        "name": "Log Preview No Action",
+        "type": "n8n-nodes-base.function",
+        "typeVersion": 1,
+        "position": [
+          672,
+          1936
         ]
       },
       {
@@ -84,457 +434,70 @@
           },
           "options": {}
         },
-        "id": "ba58f7c8-177a-4b1e-aeed-53d0f3cc6c86",
+        "id": "75499747-d42c-4a9f-ac42-0c259c73d0d5",
         "name": "Set commit date",
         "type": "n8n-nodes-base.set",
         "typeVersion": 2,
         "position": [
-          80,
-          -48
+          -496,
+          1536
         ]
       },
       {
         "parameters": {
-          "rules": {
-            "values": [
-              {
-                "conditions": {
-                  "options": {
-                    "caseSensitive": true,
-                    "leftValue": "",
-                    "typeValidation": "strict",
-                    "version": 2
-                  },
-                  "conditions": [
-                    {
-                      "leftValue": "={{ $('Google Drive Trigger').item.json.name }}",
-                      "rightValue": "Content",
-                      "operator": {
-                        "type": "string",
-                        "operation": "contains"
-                      },
-                      "id": "3e74a48c-bdfd-468e-80ae-6cd2efa97e68"
-                    }
-                  ],
-                  "combinator": "and"
-                },
-                "renameOutput": true,
-                "outputKey": "content"
-              },
-              {
-                "conditions": {
-                  "options": {
-                    "caseSensitive": true,
-                    "leftValue": "",
-                    "typeValidation": "strict",
-                    "version": 2
-                  },
-                  "conditions": [
-                    {
-                      "id": "42c578e4-38d6-451a-a9be-27101cf8c9fd",
-                      "leftValue": "={{ $('Google Drive Trigger').item.json.name }}",
-                      "rightValue": "Preview",
-                      "operator": {
-                        "type": "string",
-                        "operation": "contains"
-                      }
-                    }
-                  ],
-                  "combinator": "and"
-                },
-                "renameOutput": true,
-                "outputKey": "preview"
-              }
-            ]
-          },
-          "options": {
-            "fallbackOutput": "extra"
-          }
-        },
-        "type": "n8n-nodes-base.switch",
-        "typeVersion": 3.2,
-        "position": [
-          288,
-          -64
-        ],
-        "id": "2fe46601-7069-4e38-9e3e-630385d4b2e8",
-        "name": "Switch"
-      },
-      {
-        "parameters": {
-          "resource": "file",
-          "operation": "get",
-          "owner": "chefmatteo",
-          "repository": "Examify.pro-BlogPostContent",
-          "filePath": "data/blogPostContent.ts",
           "options": {}
         },
-        "id": "github-get-blogpost",
-        "name": "Get GitHub blogPostContent.ts",
-        "type": "n8n-nodes-base.github",
-        "typeVersion": 1,
+        "id": "c6af4156-94fa-4c45-89d8-66b8836f760e",
+        "name": "Set date",
+        "type": "n8n-nodes-base.dateTime",
+        "typeVersion": 2,
         "position": [
-          656,
-          -304
-        ],
-        "credentials": {
-          "githubApi": {
-            "id": "xPxf1slGiyx1TGdN",
-            "name": "chefmatteo_testing_blog_integration"
-          }
-        }
-      },
-      {
-        "parameters": {
-          "functionCode": "// Decode base64 content from GitHub\nconst githubContent = Buffer.from($input.first().json.content, 'base64').toString('utf8');\nreturn [{ json: { githubContent, fileName: 'blogPostContent.ts' } }];"
-        },
-        "id": "decode-github-content",
-        "name": "Decode GitHub Content",
-        "type": "n8n-nodes-base.function",
-        "typeVersion": 1,
-        "position": [
-          848,
-          -304
+          -928,
+          1536
         ]
       },
       {
         "parameters": {
-          "functionCode": "// Validate snippet format\nconst snippet = Buffer.from($input.first().json.data, 'base64').toString('utf8');\n\n// Check for required export\nif (!snippet.includes('export const newBlogPost')) {\n  throw new Error('Snippet must contain \"export const newBlogPost\"');\n}\n\n// Check for required fields\nconst requiredFields = ['slug', 'title', 'date', 'content'];\nconst missingFields = requiredFields.filter(field => !snippet.includes(field));\n\nif (missingFields.length > 0) {\n  throw new Error(`Missing required fields: ${missingFields.join(', ')}`);\n}\n\nreturn [{ json: { validSnippet: true, snippet, fileName: 'blogPostContent-snippet' } }];"
-        },
-        "id": "validate-snippet",
-        "name": "Validate Snippet",
-        "type": "n8n-nodes-base.function",
-        "typeVersion": 1,
-        "position": [
-          656,
-          -416
-        ]
-      },
-      {
-        "parameters": {
-          "conditions": {
-            "string": [
-              {
-                "value1": "={{ $('Validate Snippet').item.json.snippet }}",
-                "operation": "equals",
-                "value2": "={{ $('Decode GitHub Content').item.json.githubContent }}"
-              }
-            ]
-          }
-        },
-        "id": "compare-content",
-        "name": "Compare Content",
-        "type": "n8n-nodes-base.if",
-        "typeVersion": 1,
-        "position": [
-          1040,
-          -304
-        ]
-      },
-      {
-        "parameters": {
-          "functionCode": "// Parse existing GitHub content and merge with new snippet\nconst existingContent = $('Decode GitHub Content').item.json.githubContent;\nconst newSnippet = $('Validate Snippet').item.json.snippet;\n\n// Extract blogPostContent array from existing file\nconst existingMatch = existingContent.match(/export const blogPostContent = (\\[.*?\\]);/s);\nconst existingArray = existingMatch ? JSON.parse(existingMatch[1]) : [];\n\n// Extract new blog post from snippet\nconst snippetMatch = newSnippet.match(/export const newBlogPost = (\\{.*?\\});/s);\nconst newBlogPost = snippetMatch ? JSON.parse(snippetMatch[1]) : null;\n\nif (!newBlogPost) {\n  throw new Error('Invalid snippet format - could not extract newBlogPost');\n}\n\n// Check for duplicate slug\nconst existingSlugs = existingArray.map(post => post.slug);\nif (existingSlugs.includes(newBlogPost.slug)) {\n  throw new Error(`Blog post with slug '${newBlogPost.slug}' already exists`);\n}\n\n// Merge content\nconst mergedArray = [...existingArray, newBlogPost];\n\n// Generate updated TypeScript file\nconst updatedContent = `export const blogPostContent = ${JSON.stringify(mergedArray, null, 2)};`;\n\nreturn [{ json: { mergedContent: updatedContent, newPostCount: mergedArray.length, addedSlug: newBlogPost.slug } }];"
-        },
-        "id": "merge-content",
-        "name": "Merge Content",
-        "type": "n8n-nodes-base.function",
-        "typeVersion": 1,
-        "position": [
-          1232,
-          -416
-        ]
-      },
-      {
-        "parameters": {
-          "functionCode": "// Check for potential issues in merged content\nconst mergedContent = $input.first().json.mergedContent;\n\n// Validate TypeScript syntax\nif (!mergedContent.includes('export const blogPostContent')) {\n  throw new Error('Merged content missing required export statement');\n}\n\n// Check for valid JSON structure\ntry {\n  const contentMatch = mergedContent.match(/export const blogPostContent = (\\[.*?\\]);/s);\n  if (contentMatch) {\n    JSON.parse(contentMatch[1]);\n  }\n} catch (error) {\n  throw new Error('Invalid JSON structure in merged content');\n}\n\nreturn [{ json: { safeContent: true, contentLength: mergedContent.length } }];"
-        },
-        "id": "content-safety-check",
-        "name": "Content Safety Check",
-        "type": "n8n-nodes-base.function",
-        "typeVersion": 1,
-        "position": [
-          1424,
-          -416
-        ]
-      },
-      {
-        "parameters": {
-          "resource": "file",
-          "operation": "edit",
-          "owner": "chefmatteo",
-          "repository": "Examify.pro-BlogPostContent",
-          "filePath": "data/blogPostContent.ts",
-          "content": "={{ $('Content Safety Check').item.json.mergedContent }}",
-          "commitMessage": "Auto-merge new blog post from Google Drive snippet: {{ $json.formattedDate }}"
-        },
-        "id": "update-github-merged",
-        "name": "Update GitHub with Merged Content",
-        "type": "n8n-nodes-base.github",
-        "typeVersion": 1,
-        "position": [
-          1616,
-          -416
-        ],
-        "credentials": {
-          "githubApi": {
-            "id": "xPxf1slGiyx1TGdN",
-            "name": "chefmatteo_testing_blog_integration"
-          }
-        }
-      },
-      {
-        "parameters": {
-          "functionCode": "// Log successful merge\nconst addedSlug = $('Merge Content').item.json.addedSlug;\nconst newPostCount = $('Merge Content').item.json.newPostCount;\n\nreturn [{ json: { \n  message: `Successfully merged new blog post: ${addedSlug}`,\n  totalPosts: newPostCount,\n  timestamp: new Date().toISOString(),\n  action: 'merge_success'\n} }];"
-        },
-        "id": "log-success",
-        "name": "Log Success",
-        "type": "n8n-nodes-base.function",
-        "typeVersion": 1,
-        "position": [
-          1808,
-          -416
-        ]
-      },
-      {
-        "parameters": {
-          "functionCode": "// Log no action needed\nreturn [{ json: { \n  message: 'Content is identical - no update needed',\n  timestamp: new Date().toISOString(),\n  action: 'no_action'\n} }];"
-        },
-        "id": "log-no-action",
-        "name": "Log No Action",
-        "type": "n8n-nodes-base.function",
-        "typeVersion": 1,
-        "position": [
-          1232,
-          -192
-        ]
-      },
-      {
-        "parameters": {
-          "resource": "file",
-          "operation": "get",
-          "owner": "chefmatteo",
-          "repository": "Examify.pro-BlogPostContent",
-          "filePath": "data/blogPreviews.ts",
+          "operation": "formatDate",
+          "date": "={{ $json.currentDate }}",
+          "format": "custom",
+          "customFormat": "dd-MM-yyyy/H:mm",
           "options": {}
         },
-        "id": "github-get-blogpreviews",
-        "name": "Get GitHub blogPreviews.ts",
-        "type": "n8n-nodes-base.github",
-        "typeVersion": 1,
+        "id": "ed0d2a6d-43f7-485f-8ac2-cb796c14f14c",
+        "name": "Format date",
+        "type": "n8n-nodes-base.dateTime",
+        "typeVersion": 2,
         "position": [
-          656,
-          -112
-        ],
-        "credentials": {
-          "githubApi": {
-            "id": "xPxf1slGiyx1TGdN",
-            "name": "chefmatteo_testing_blog_integration"
-          }
-        }
-      },
-      {
-        "parameters": {
-          "functionCode": "// Decode base64 content from GitHub\nconst githubContent = Buffer.from($input.first().json.content, 'base64').toString('utf8');\nreturn [{ json: { githubContent, fileName: 'blogPreviews.ts' } }];"
-        },
-        "id": "decode-github-previews",
-        "name": "Decode GitHub Previews",
-        "type": "n8n-nodes-base.function",
-        "typeVersion": 1,
-        "position": [
-          848,
-          -112
+          -720,
+          1536
         ]
-      },
-      {
-        "parameters": {
-          "functionCode": "// Validate preview snippet format\nconst snippet = Buffer.from($input.first().json.data, 'base64').toString('utf8');\n\n// Check for required export\nif (!snippet.includes('export const newBlogPreview')) {\n  throw new Error('Preview snippet must contain \"export const newBlogPreview\"');\n}\n\n// Check for required fields\nconst requiredFields = ['slug', 'title', 'date', 'excerpt'];\nconst missingFields = requiredFields.filter(field => !snippet.includes(field));\n\nif (missingFields.length > 0) {\n  throw new Error(`Missing required fields: ${missingFields.join(', ')}`);\n}\n\nreturn [{ json: { validSnippet: true, snippet, fileName: 'blogPreviews-snippet' } }];"
-        },
-        "id": "validate-preview-snippet",
-        "name": "Validate Preview Snippet",
-        "type": "n8n-nodes-base.function",
-        "typeVersion": 1,
-        "position": [
-          656,
-          -224
-        ]
-      },
-      {
-        "parameters": {
-          "conditions": {
-            "string": [
-              {
-                "value1": "={{ $('Validate Preview Snippet').item.json.snippet }}",
-                "operation": "equals",
-                "value2": "={{ $('Decode GitHub Previews').item.json.githubContent }}"
-              }
-            ]
-          }
-        },
-        "id": "compare-preview-content",
-        "name": "Compare Preview Content",
-        "type": "n8n-nodes-base.if",
-        "typeVersion": 1,
-        "position": [
-          1040,
-          -112
-        ]
-      },
-      {
-        "parameters": {
-          "functionCode": "// Parse existing GitHub content and merge with new preview snippet\nconst existingContent = $('Decode GitHub Previews').item.json.githubContent;\nconst newSnippet = $('Validate Preview Snippet').item.json.snippet;\n\n// Extract blogPreviews array from existing file\nconst existingMatch = existingContent.match(/export const blogPreviews = (\\[.*?\\]);/s);\nconst existingArray = existingMatch ? JSON.parse(existingMatch[1]) : [];\n\n// Extract new blog preview from snippet\nconst snippetMatch = newSnippet.match(/export const newBlogPreview = (\\{.*?\\});/s);\nconst newBlogPreview = snippetMatch ? JSON.parse(snippetMatch[1]) : null;\n\nif (!newBlogPreview) {\n  throw new Error('Invalid snippet format - could not extract newBlogPreview');\n}\n\n// Check for duplicate slug\nconst existingSlugs = existingArray.map(preview => preview.slug);\nif (existingSlugs.includes(newBlogPreview.slug)) {\n  throw new Error(`Blog preview with slug '${newBlogPreview.slug}' already exists`);\n}\n\n// Merge content\nconst mergedArray = [...existingArray, newBlogPreview];\n\n// Generate updated TypeScript file\nconst updatedContent = `export const blogPreviews = ${JSON.stringify(mergedArray, null, 2)};`;\n\nreturn [{ json: { mergedContent: updatedContent, newPreviewCount: mergedArray.length, addedSlug: newBlogPreview.slug } }];"
-        },
-        "id": "merge-preview-content",
-        "name": "Merge Preview Content",
-        "type": "n8n-nodes-base.function",
-        "typeVersion": 1,
-        "position": [
-          1232,
-          -224
-        ]
-      },
-      {
-        "parameters": {
-          "functionCode": "// Check for potential issues in merged preview content\nconst mergedContent = $input.first().json.mergedContent;\n\n// Validate TypeScript syntax\nif (!mergedContent.includes('export const blogPreviews')) {\n  throw new Error('Merged preview content missing required export statement');\n}\n\n// Check for valid JSON structure\ntry {\n  const contentMatch = mergedContent.match(/export const blogPreviews = (\\[.*?\\]);/s);\n  if (contentMatch) {\n    JSON.parse(contentMatch[1]);\n  }\n} catch (error) {\n  throw new Error('Invalid JSON structure in merged preview content');\n}\n\nreturn [{ json: { safeContent: true, contentLength: mergedContent.length } }];"
-        },
-        "id": "preview-safety-check",
-        "name": "Preview Safety Check",
-        "type": "n8n-nodes-base.function",
-        "typeVersion": 1,
-        "position": [
-          1424,
-          -224
-        ]
-      },
-      {
-        "parameters": {
-          "resource": "file",
-          "operation": "edit",
-          "owner": "chefmatteo",
-          "repository": "Examify.pro-BlogPostContent",
-          "filePath": "data/blogPreviews.ts",
-          "content": "={{ $('Preview Safety Check').item.json.mergedContent }}",
-          "commitMessage": "Auto-merge new blog preview from Google Drive snippet: {{ $json.formattedDate }}"
-        },
-        "id": "update-github-preview-merged",
-        "name": "Update GitHub with Merged Preview",
-        "type": "n8n-nodes-base.github",
-        "typeVersion": 1,
-        "position": [
-          1616,
-          -224
-        ],
-        "credentials": {
-          "githubApi": {
-            "id": "xPxf1slGiyx1TGdN",
-            "name": "chefmatteo_testing_blog_integration"
-          }
-        }
-      },
-      {
-        "parameters": {
-          "functionCode": "// Log successful preview merge\nconst addedSlug = $('Merge Preview Content').item.json.addedSlug;\nconst newPreviewCount = $('Merge Preview Content').item.json.newPreviewCount;\n\nreturn [{ json: { \n  message: `Successfully merged new blog preview: ${addedSlug}`,\n  totalPreviews: newPreviewCount,\n  timestamp: new Date().toISOString(),\n  action: 'preview_merge_success'\n} }];"
-        },
-        "id": "log-preview-success",
-        "name": "Log Preview Success",
-        "type": "n8n-nodes-base.function",
-        "typeVersion": 1,
-        "position": [
-          1808,
-          -224
-        ]
-      },
-      {
-        "parameters": {
-          "functionCode": "// Log no action needed for preview\nreturn [{ json: { \n  message: 'Preview content is identical - no update needed',\n  timestamp: new Date().toISOString(),\n  action: 'preview_no_action'\n} }];"
-        },
-        "id": "log-preview-no-action",
-        "name": "Log Preview No Action",
-        "type": "n8n-nodes-base.function",
-        "typeVersion": 1,
-        "position": [
-          1232,
-          0
-        ]
-      },
-      {
-        "parameters": {
-          "method": "POST",
-          "url": "https://discord.com/api/webhooks/1410105152819429386/R-skMAbCsJKWHPIpCiiXGXEoJJMC4KuPrqVIskKxUE57Rc4qkWwjz9oiNhdIH6VvkOhV",
-          "sendBody": true,
-          "specifyBody": "json",
-          "jsonBody": "{\n  \"embeds\": [\n    {\n      \"title\": \"Blog Content Update\",\n      \"description\": \"{{ $json.message }}\",\n      \"color\": 16711680,\n      \"footer\": {\n        \"text\": \"{{ $json.timestamp }}\"\n      },\n      \"author\": {\n        \"name\": \"N8N Blog Automation\"\n      },\n      \"fields\": [\n        {\n          \"name\": \"Action\",\n          \"value\": \"{{ $json.action }}\",\n          \"inline\": true\n        },\n        {\n          \"name\": \"Total Posts\",\n          \"value\": \"{{ $json.totalPosts || $json.totalPreviews || 'N/A' }}\",\n          \"inline\": true\n        }\n      ]\n    }\n  ]\n}",
-          "options": {}
-        },
-        "type": "n8n-nodes-base.httpRequest",
-        "typeVersion": 4.2,
-        "position": [
-          2000,
-          -320
-        ],
-        "id": "2b77d028-8613-4b1b-b104-ab50e658dcbc",
-        "name": "POST to Discord Webhook"
-      },
-      {
-        "parameters": {
-          "content": "## File naming convention when uploading file to Drive\n\nUpload file to the \"Blogs\" folder in \"Marketing\". Make sure it contains **Content** if it is a content file and **Preview** if it is a preview file\n\n### Expected Snippet Formats:\n\n**Blog Post Content Snippet:**\n```typescript\nexport const newBlogPost: BlogPostContent = {\n  slug: 'new-blog-post',\n  title: 'New Blog Post Title',\n  date: '2025-01-20',\n  authors: ['Author Name'],\n  tags: ['tag1', 'tag2'],\n  image: '/image.jpg',\n  excerpt: 'Blog post excerpt...',\n  content: 'Blog post content...',\n  richContent: [...]\n};\n```\n\n**Blog Preview Snippet:**\n```typescript\nexport const newBlogPreview: BlogPreview = {\n  slug: 'new-blog-post',\n  title: 'New Blog Post Title',\n  date: '2025-01-20',\n  excerpt: 'Blog post excerpt...',\n  image: '/image.jpg'\n};\n```",
-          "height": 480
-        },
-        "type": "n8n-nodes-base.stickyNote",
-        "position": [
-          -592,
-          -352
-        ],
-        "typeVersion": 1,
-        "id": "78a000a8-120f-4d93-8ff9-851335b1138e",
-        "name": "Sticky Note1"
       }
     ],
     "connections": {
-      "Google Drive Trigger": {
+      "Execute workflow": {
         "main": [
           [
             {
-              "node": "Download file from Google Drive",
+              "node": "Set date",
               "type": "main",
               "index": 0
             }
           ]
         ]
       },
-      "Download file from Google Drive": {
+      "Search for blogPostContent snippet": {
         "main": [
           [
             {
-              "node": "Format date",
+              "node": "Download snippet from Google Drive",
               "type": "main",
               "index": 0
             }
           ]
         ]
       },
-      "Format date": {
-        "main": [
-          [
-            {
-              "node": "Set commit date",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Set commit date": {
-        "main": [
-          [
-            {
-              "node": "Switch",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Switch": {
+      "Download snippet from Google Drive": {
         "main": [
           [
             {
@@ -544,18 +507,6 @@
             },
             {
               "node": "Get GitHub blogPostContent.ts",
-              "type": "main",
-              "index": 0
-            }
-          ],
-          [
-            {
-              "node": "Validate Preview Snippet",
-              "type": "main",
-              "index": 0
-            },
-            {
-              "node": "Get GitHub blogPreviews.ts",
               "type": "main",
               "index": 0
             }
@@ -646,22 +597,27 @@
           ]
         ]
       },
-      "Log Success": {
+      "Search for blogPreviews snippet": {
         "main": [
           [
             {
-              "node": "POST to Discord Webhook",
+              "node": "Download preview snippet from Google Drive",
               "type": "main",
               "index": 0
             }
           ]
         ]
       },
-      "Log No Action": {
+      "Download preview snippet from Google Drive": {
         "main": [
           [
             {
-              "node": "POST to Discord Webhook",
+              "node": "Validate Preview Snippet",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Get GitHub blogPreviews.ts",
               "type": "main",
               "index": 0
             }
@@ -752,22 +708,38 @@
           ]
         ]
       },
-      "Log Preview Success": {
+      "Set commit date": {
         "main": [
           [
             {
-              "node": "POST to Discord Webhook",
+              "node": "Search for blogPostContent snippet",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Search for blogPreviews snippet",
               "type": "main",
               "index": 0
             }
           ]
         ]
       },
-      "Log Preview No Action": {
+      "Set date": {
         "main": [
           [
             {
-              "node": "POST to Discord Webhook",
+              "node": "Format date",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Format date": {
+        "main": [
+          [
+            {
+              "node": "Set commit date",
               "type": "main",
               "index": 0
             }

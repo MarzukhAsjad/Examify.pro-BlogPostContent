@@ -1,0 +1,321 @@
+{
+    "nodes": [
+      {
+        "parameters": {},
+        "id": "56d08bdf-afa2-429d-b031-727a365360e6",
+        "name": "Execute workflow",
+        "type": "n8n-nodes-base.manualTrigger",
+        "typeVersion": 1,
+        "position": [
+          -576,
+          960
+        ]
+      },
+      {
+        "parameters": {
+          "keepOnlySet": true,
+          "values": {
+            "string": [
+              {
+                "name": "commitDate",
+                "value": "={{ $json.formattedDate }}"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "50ea195c-f8f5-4177-8cf4-20cd98d00204",
+        "name": "Set commit date1",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 2,
+        "position": [
+          64,
+          960
+        ]
+      },
+      {
+        "parameters": {
+          "options": {}
+        },
+        "id": "3db2dafa-98e9-4118-be76-cae48677a4aa",
+        "name": "Set date4",
+        "type": "n8n-nodes-base.dateTime",
+        "typeVersion": 2,
+        "position": [
+          -368,
+          960
+        ]
+      },
+      {
+        "parameters": {
+          "resource": "fileFolder",
+          "queryString": "blogPostContent.ts",
+          "returnAll": true,
+          "filter": {
+            "folderId": {
+              "__rl": true,
+              "value": "13QWBCMlAPeTd2UKpTDOsAGFefJBmJFIA",
+              "mode": "list",
+              "cachedResultName": "blogcontent",
+              "cachedResultUrl": "https://drive.google.com/drive/folders/13QWBCMlAPeTd2UKpTDOsAGFefJBmJFIA"
+            },
+            "whatToSearch": "files"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleDrive",
+        "typeVersion": 3,
+        "position": [
+          272,
+          832
+        ],
+        "id": "49026a72-9f7f-4fb5-bb38-72be3cb50e0e",
+        "name": "Search for blogPostContent.ts",
+        "alwaysOutputData": true,
+        "credentials": {
+          "googleDriveOAuth2Api": {
+            "id": "2vg1fSo8hu2qFmjI",
+            "name": "Google Drive account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "download",
+          "fileId": "={{ $json.id }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleDrive",
+        "typeVersion": 3,
+        "position": [
+          464,
+          832
+        ],
+        "id": "57338f36-8cab-4ac7-8087-9e4f406f29a6",
+        "name": "Download file from Google Drive",
+        "credentials": {
+          "googleDriveOAuth2Api": {
+            "id": "2vg1fSo8hu2qFmjI",
+            "name": "Google Drive account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "formatDate",
+          "date": "={{ $json.currentDate }}",
+          "format": "custom",
+          "customFormat": "dd-MM-yyyy/H:mm",
+          "options": {}
+        },
+        "id": "836078aa-8bae-4ff2-8f32-d55b992ff362",
+        "name": "Format date1",
+        "type": "n8n-nodes-base.dateTime",
+        "typeVersion": 2,
+        "position": [
+          -160,
+          960
+        ]
+      },
+      {
+        "parameters": {
+          "resource": "file",
+          "operation": "edit",
+          "owner": "chefmatteo",
+          "repository": "Examify.pro-BlogPostContent",
+          "filePath": "data/blogPostContent.ts",
+          "binaryData": true,
+          "commitMessage": "Auto-update blog content from Google Drive: {{ $json.formattedDate }}"
+        },
+        "id": "5454f8f8-3b7f-4bed-aac9-5e50d9de864b",
+        "name": "Update file in GitHub",
+        "type": "n8n-nodes-base.github",
+        "typeVersion": 1,
+        "position": [
+          672,
+          832
+        ],
+        "webhookId": "6a596591-125a-46ed-b907-91dd95833170",
+        "credentials": {
+          "githubApi": {
+            "id": "xPxf1slGiyx1TGdN",
+            "name": "chefmatteo_testing_blog_integration"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "fileFolder",
+          "queryString": "blogPreviews.ts",
+          "returnAll": true,
+          "filter": {
+            "folderId": {
+              "__rl": true,
+              "value": "14Wlp8CJ8sl25dJTWeXIeWkZTw-nmiOX_",
+              "mode": "list",
+              "cachedResultName": "blogpreview",
+              "cachedResultUrl": "https://drive.google.com/drive/folders/14Wlp8CJ8sl25dJTWeXIeWkZTw-nmiOX_"
+            },
+            "whatToSearch": "files"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleDrive",
+        "typeVersion": 3,
+        "position": [
+          272,
+          1040
+        ],
+        "id": "052beace-932a-4c7b-a988-6f8922355090",
+        "name": "Search for blogPreviews.ts",
+        "alwaysOutputData": true,
+        "credentials": {
+          "googleDriveOAuth2Api": {
+            "id": "2vg1fSo8hu2qFmjI",
+            "name": "Google Drive account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "file",
+          "operation": "edit",
+          "owner": "chefmatteo",
+          "repository": "Examify.pro-BlogPostContent",
+          "filePath": "data/blogPreviews.ts",
+          "binaryData": true,
+          "commitMessage": "Auto-update blog content from Google Drive: {{ $json.formattedDate }}"
+        },
+        "id": "11fd6134-265d-4d67-9f0e-270adb9dcc17",
+        "name": "Update file in GitHub1",
+        "type": "n8n-nodes-base.github",
+        "typeVersion": 1,
+        "position": [
+          672,
+          1040
+        ],
+        "webhookId": "6a596591-125a-46ed-b907-91dd95833170",
+        "credentials": {
+          "githubApi": {
+            "id": "xPxf1slGiyx1TGdN",
+            "name": "chefmatteo_testing_blog_integration"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "download",
+          "fileId": "={{ $json.id }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleDrive",
+        "typeVersion": 3,
+        "position": [
+          464,
+          1040
+        ],
+        "id": "952c2be5-56ec-4df8-a755-ab55bff1503e",
+        "name": "Download file from Google Drive1",
+        "credentials": {
+          "googleDriveOAuth2Api": {
+            "id": "2vg1fSo8hu2qFmjI",
+            "name": "Google Drive account"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Execute workflow": {
+        "main": [
+          [
+            {
+              "node": "Set date4",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Set commit date1": {
+        "main": [
+          [
+            {
+              "node": "Search for blogPostContent.ts",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Search for blogPreviews.ts",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Set date4": {
+        "main": [
+          [
+            {
+              "node": "Format date1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Search for blogPostContent.ts": {
+        "main": [
+          [
+            {
+              "node": "Download file from Google Drive",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Download file from Google Drive": {
+        "main": [
+          [
+            {
+              "node": "Update file in GitHub",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Format date1": {
+        "main": [
+          [
+            {
+              "node": "Set commit date1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Search for blogPreviews.ts": {
+        "main": [
+          [
+            {
+              "node": "Download file from Google Drive1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Download file from Google Drive1": {
+        "main": [
+          []
+        ]
+      }
+    },
+    "pinData": {},
+    "meta": {
+      "templateCredsSetupCompleted": true,
+      "instanceId": "7efb57ee463638d3638e3e4571358ef61feadec8ab43d6c81603ac733931cb3a"
+    }
+  }
