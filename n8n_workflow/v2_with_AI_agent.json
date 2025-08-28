@@ -1,0 +1,423 @@
+{
+    "nodes": [
+      {
+        "parameters": {
+          "pollTimes": {
+            "item": [
+              {
+                "mode": "everyHour"
+              }
+            ]
+          },
+          "triggerOn": "specificFolder",
+          "folderToWatch": {
+            "__rl": true,
+            "value": "https://drive.google.com/drive/u/0/folders/1SyTKcZKT-Ht1WVbr2ZYBCSsI_TtpKve3",
+            "mode": "url"
+          },
+          "event": "fileCreated",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleDriveTrigger",
+        "typeVersion": 1,
+        "position": [
+          -464,
+          -64
+        ],
+        "id": "38ca3be8-2a1a-4899-9b3c-2b7f32a6129d",
+        "name": "Google Drive Trigger",
+        "credentials": {
+          "googleDriveOAuth2Api": {
+            "id": "qkHDZtvy6mpvslUS",
+            "name": "Google Drive account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "download",
+          "fileId": "={{ $json.id }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleDrive",
+        "typeVersion": 3,
+        "position": [
+          -240,
+          -64
+        ],
+        "id": "79dccbd3-0d17-4973-a788-2e95dbad213b",
+        "name": "Download file from Google Drive",
+        "credentials": {
+          "googleDriveOAuth2Api": {
+            "id": "qkHDZtvy6mpvslUS",
+            "name": "Google Drive account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "keepOnlySet": true,
+          "values": {
+            "string": [
+              {
+                "name": "commitDate",
+                "value": "={{ $json.formattedDate }}"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "ba58f7c8-177a-4b1e-aeed-53d0f3cc6c86",
+        "name": "Set commit date",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 2,
+        "position": [
+          144,
+          -64
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "formatDate",
+          "date": "={{ $json.createdTime }}",
+          "format": "custom",
+          "customFormat": "dd-MM-yyyy/H:mm",
+          "options": {}
+        },
+        "id": "ec9a3271-49a7-4d78-a054-aa6fe2804ad7",
+        "name": "Format date",
+        "type": "n8n-nodes-base.dateTime",
+        "typeVersion": 2,
+        "position": [
+          -64,
+          -64
+        ]
+      },
+      {
+        "parameters": {
+          "content": "## File naming convention when uploading file to Drive\n\nUpload file to the \"Blogs\" folder in \"Marketing\". Make sure it contains **Content** if it is a content file and **Preview** if it is a preview file",
+          "height": 480
+        },
+        "type": "n8n-nodes-base.stickyNote",
+        "position": [
+          -528,
+          -368
+        ],
+        "typeVersion": 1,
+        "id": "78a000a8-120f-4d93-8ff9-851335b1138e",
+        "name": "Sticky Note1"
+      },
+      {
+        "parameters": {
+          "model": "anthropic/claude-3.7-sonnet:thinking",
+          "options": {
+            "responseFormat": "json_object"
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+        "typeVersion": 1,
+        "position": [
+          352,
+          176
+        ],
+        "id": "12057ab2-cdd2-46e2-8049-5d54b5c15ff1",
+        "name": "OpenRouter Chat Model",
+        "credentials": {
+          "openRouterApi": {
+            "id": "zXCVTasuUQfzbHCI",
+            "name": "OpenRouter account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "content": "## Code Merge Agent\n\nThis is an Agent Node that uses Langhchain underneath. It has access to some tools that it can use to retrieve code and update the code as well as send webhook notifications, and additionally it has a system prompt to guide it. The tools when referenced will be case sensitive.",
+          "height": 272,
+          "width": 272
+        },
+        "type": "n8n-nodes-base.stickyNote",
+        "typeVersion": 1,
+        "position": [
+          368,
+          -384
+        ],
+        "id": "be8bb5fc-00bd-4c9d-a4be-c67c21d6dfef",
+        "name": "Sticky Note2"
+      },
+      {
+        "parameters": {
+          "toolDescription": "Send discord notification to webhook when done or if there's any error in parsing the code.",
+          "method": "POST",
+          "url": "https://discord.com/api/webhooks/1410105152819429386/R-skMAbCsJKWHPIpCiiXGXEoJJMC4KuPrqVIskKxUE57Rc4qkWwjz9oiNhdIH6VvkOhV",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('JSON', ``, 'json') }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequestTool",
+        "typeVersion": 4.2,
+        "position": [
+          1024,
+          256
+        ],
+        "id": "86aac0ee-9669-4507-a9cc-f5f103e9b7bc",
+        "name": "notify_via_discord"
+      },
+      {
+        "parameters": {
+          "resource": "file",
+          "operation": "edit",
+          "owner": {
+            "__rl": true,
+            "value": "MarzukhAsjad",
+            "mode": "list",
+            "cachedResultName": "MarzukhAsjad",
+            "cachedResultUrl": "https://github.com/MarzukhAsjad"
+          },
+          "repository": {
+            "__rl": true,
+            "value": "Examify.pro-BlogPostContent",
+            "mode": "list",
+            "cachedResultName": "Examify.pro-BlogPostContent",
+            "cachedResultUrl": "https://github.com/MarzukhAsjad/Examify.pro-BlogPostContent"
+          },
+          "filePath": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('File_Path', ``, 'string') }}",
+          "fileContent": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('File_Content', ``, 'string') }}",
+          "commitMessage": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Commit_Message', ``, 'string') }}"
+        },
+        "type": "n8n-nodes-base.githubTool",
+        "typeVersion": 1.1,
+        "position": [
+          752,
+          320
+        ],
+        "id": "6e66bf44-be55-473a-9a05-a7a3e4f2f57f",
+        "name": "update_code",
+        "webhookId": "2df81bcd-344e-4f3b-bb9a-7352cfc32001",
+        "credentials": {
+          "githubApi": {
+            "id": "LXhGycgHFgSduTJs",
+            "name": "GitHub account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "file",
+          "operation": "get",
+          "owner": {
+            "__rl": true,
+            "value": "MarzukhAsjad",
+            "mode": "list",
+            "cachedResultName": "MarzukhAsjad",
+            "cachedResultUrl": "https://github.com/MarzukhAsjad"
+          },
+          "repository": {
+            "__rl": true,
+            "value": "Examify.pro-BlogPostContent",
+            "mode": "list",
+            "cachedResultName": "Examify.pro-BlogPostContent",
+            "cachedResultUrl": "https://github.com/MarzukhAsjad/Examify.pro-BlogPostContent"
+          },
+          "filePath": "data/blogPreviews.ts",
+          "asBinaryProperty": false,
+          "additionalParameters": {}
+        },
+        "type": "n8n-nodes-base.githubTool",
+        "typeVersion": 1.1,
+        "position": [
+          608,
+          384
+        ],
+        "id": "b8aef0aa-99ea-4f76-b1f9-bbfdbd9bec9a",
+        "name": "get_current_blog_preview",
+        "webhookId": "1d77ddca-aa19-4ba0-960f-07026862401c",
+        "credentials": {
+          "githubApi": {
+            "id": "LXhGycgHFgSduTJs",
+            "name": "GitHub account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "file",
+          "operation": "get",
+          "owner": {
+            "__rl": true,
+            "value": "MarzukhAsjad",
+            "mode": "list",
+            "cachedResultName": "MarzukhAsjad",
+            "cachedResultUrl": "https://github.com/MarzukhAsjad"
+          },
+          "repository": {
+            "__rl": true,
+            "value": "Examify.pro-BlogPostContent",
+            "mode": "list",
+            "cachedResultName": "Examify.pro-BlogPostContent",
+            "cachedResultUrl": "https://github.com/MarzukhAsjad/Examify.pro-BlogPostContent"
+          },
+          "filePath": "data/blogPostContent.ts",
+          "asBinaryProperty": false,
+          "additionalParameters": {}
+        },
+        "type": "n8n-nodes-base.githubTool",
+        "typeVersion": 1.1,
+        "position": [
+          448,
+          432
+        ],
+        "id": "1d9e997d-a8a9-44e9-a444-1d052ca36532",
+        "name": "get_current_blog_post_content",
+        "webhookId": "b7c09ced-59ec-402b-a72d-b2918e8cc171",
+        "credentials": {
+          "githubApi": {
+            "id": "LXhGycgHFgSduTJs",
+            "name": "GitHub account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "=You are a bot that excels in merging codes. I will give you a code snippet which represents a blog post (the actual content) or a preview (preview of a blog, like a thumbnail). When the snippet is a blog content code, you will merge it to the blogPostContent.ts file. When the snippet is blog preview code, you will merge it to the blogPreviews.ts file. You may analyse the blogPostContent.ts or blogPreviews.ts first using the tools below to understand which file to add it to and where in which line. Then once it's done, I want you to give me the final merged blogPostContent.ts or blogPreviews.ts. This will be in json format. One field will be the `filename`, which will say if it either *blogPostContent.ts* or *blogPreviews.ts*. The other field `code` will contain the fully merged code of the new file.\n\n```snippet (you can specify whether it's preview or postContent dynamically in runtime with incoming node information)\n{{ \"snippet\" }}\n```\n\nYou have the following tools to use:\n1. get_current_blog_preview (needs description of how this works and when to use)\n2. get_current_blog_post_content (needs description of how this works and when to use)\n3. update_code \n4. notify_via_discord (requires description)\n\n--> For formatting the payload, you can either refere to the [official Discord docs](https://discord.com/developers/docs/resources/webhook#execute-webhook) or this [cool tool to convert previews to jsons](https://toolscord.com/webhook)",
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "typeVersion": 2.2,
+        "position": [
+          384,
+          -64
+        ],
+        "id": "ff8b23aa-3142-4662-ab7c-b55009775e80",
+        "name": "Code Merge Agent"
+      },
+      {
+        "parameters": {
+          "content": "## Discord Event Notification\n \nI tried using the **Discord N8N Node** but it does not work. This HTTP Request Node works however. For formatting the payload, you can either refere to the [official Discord docs](https://discord.com/developers/docs/resources/webhook#execute-webhook) or this [cool tool to convert previews to jsons](https://toolscord.com/webhook)",
+          "height": 448,
+          "width": 288,
+          "color": 5
+        },
+        "type": "n8n-nodes-base.stickyNote",
+        "position": [
+          928,
+          -32
+        ],
+        "typeVersion": 1,
+        "id": "b232bde6-9e92-4c75-94f6-57bf02c5c306",
+        "name": "Sticky Note"
+      }
+    ],
+    "connections": {
+      "Google Drive Trigger": {
+        "main": [
+          [
+            {
+              "node": "Download file from Google Drive",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Download file from Google Drive": {
+        "main": [
+          [
+            {
+              "node": "Format date",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Set commit date": {
+        "main": [
+          [
+            {
+              "node": "Code Merge Agent",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Format date": {
+        "main": [
+          [
+            {
+              "node": "Set commit date",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "OpenRouter Chat Model": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "Code Merge Agent",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "notify_via_discord": {
+        "ai_tool": [
+          [
+            {
+              "node": "Code Merge Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "update_code": {
+        "ai_tool": [
+          [
+            {
+              "node": "Code Merge Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "get_current_blog_preview": {
+        "ai_tool": [
+          [
+            {
+              "node": "Code Merge Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "get_current_blog_post_content": {
+        "ai_tool": [
+          [
+            {
+              "node": "Code Merge Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Code Merge Agent": {
+        "main": [
+          []
+        ]
+      }
+    },
+    "pinData": {},
+    "meta": {
+      "templateCredsSetupCompleted": true,
+      "instanceId": "67dc7a1656e928e8b0b7743481da58b3d9c8ff33bc58191f75c9367d77ae4ba2"
+    }
+  }

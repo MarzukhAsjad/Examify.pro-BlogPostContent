@@ -1,4 +1,4 @@
-export const newBlogPreview: BlogPreview = {
+{
     slug: 'new-blog-post',
     title: 'New Blog Post Title',
     date: '2025-01-20',
