@@ -117,33 +117,55 @@
     },
     {
       "parameters": {
-        "functionCode": "// Use Python script to extract GitHub content\nconst { exec } = require('child_process');\nconst util = require('util');\nconst execAsync = util.promisify(exec);\n\nconst githubContent = $input.first().json.content;\nconst contentType = 'blogPostContent';\n\n// Call Python script\nconst pythonScript = './compare_node/extract_github_content.py';\nconst command = `python3 ${pythonScript} ${contentType} \"${githubContent}\"`;\n\ntry {\n  const { stdout, stderr } = await execAsync(command);\n  \n  if (stderr) {\n    throw new Error(`Python script error: ${stderr}`);\n  }\n  \n  const result = JSON.parse(stdout);\n  \n  if (result.error) {\n    throw new Error(result.error);\n  }\n  \n  return [{ json: { \n    githubContent: result.rawContent,\n    extractedContent: result.blogPostContent,\n    fileName: 'blogPostContent.ts'\n  } }];\n} catch (error) {\n  throw new Error(`Failed to extract GitHub content: ${error.message}`);\n}"
+        "command": "python3 ./compare_node/extract_github_content.py blogPostContent \"{{ $json.content }}\"",
+        "options": {}
       },
       "id": "extract-github-content",
       "name": "Extract GitHub Content",
-      "type": "n8n-nodes-base.function",
+      "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
       "position": [128, 640]
     },
     {
       "parameters": {
-        "functionCode": "// Use Python script to compare content\nconst { exec } = require('child_process');\nconst util = require('util');\nconst execAsync = util.promisify(exec);\n\nconst githubContent = $('Extract GitHub Content').item.json.githubContent;\nconst snippetContent = $('Validate Snippet2').item.json.snippet;\nconst contentType = 'blogPostContent';\n\n// Call Python script\nconst pythonScript = './compare_node/compare_content.py';\nconst command = `python3 ${pythonScript} ${contentType} \"${githubContent}\" \"${snippetContent}\"`;\n\ntry {\n  const { stdout, stderr } = await execAsync(command);\n  \n  if (stderr) {\n    throw new Error(`Python script error: ${stderr}`);\n  }\n  \n  const result = JSON.parse(stdout);\n  \n  if (result.error) {\n    throw new Error(result.error);\n  }\n  \n  return [{ json: { \n    hasChanges: result.hasChanges,\n    existingCount: result.existingCount,\n    newCount: result.newCount,\n    newPost: result.newPost,\n    mergedContent: result.mergedContent,\n    message: result.message || null,\n    error: result.error || null\n  } }];\n} catch (error) {\n  throw new Error(`Failed to compare content: ${error.message}`);\n}"
+        "command": "python3 ./compare_node/compare_content.py blogPostContent \"{{ $('Parse GitHub Content').item.json.githubContent }}\" \"{{ $('Validate Snippet2').item.json.snippet }}\"",
+        "options": {}
       },
       "id": "compare-content-python",
       "name": "Compare Content Python",
-      "type": "n8n-nodes-base.function",
+      "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
       "position": [320, 624]
     },
     {
       "parameters": {
-        "functionCode": "// Parse existing GitHub content and merge with new snippet\nconst existingContent = $('Extract GitHub Content').item.json.extractedContent;\nconst newSnippet = $('Validate Snippet2').item.json.snippet;\n\n// Extract blogPostContent array from existing file\nconst existingMatch = existingContent.match(/export const blogPostContent = (\\[.*?\\]);/s);\nconst existingArray = existingMatch ? JSON.parse(existingMatch[1]) : [];\n\n// Extract new blog post from snippet\nconst snippetMatch = newSnippet.match(/export const newBlogPost = (\\{.*?\\});/s);\nconst newBlogPost = snippetMatch ? JSON.parse(snippetMatch[1]) : null;\n\nif (!newBlogPost) {\n  throw new Error('Invalid snippet format - could not extract newBlogPost');\n}\n\n// Check for duplicate slug\nconst existingSlugs = existingArray.map(post => post.slug);\nif (existingSlugs.includes(newBlogPost.slug)) {\n  throw new Error(`Blog post with slug '${newBlogPost.slug}' already exists`);\n}\n\n// Merge content\nconst mergedArray = [...existingArray, newBlogPost];\n\n// Generate updated TypeScript file\nconst updatedContent = `export const blogPostContent = ${JSON.stringify(mergedArray, null, 2)};`;\n\nreturn [{ json: { mergedContent: updatedContent, newPostCount: mergedArray.length, addedSlug: newBlogPost.slug } }];"
+        "functionCode": "// Parse JSON output from Extract GitHub Content\nconst stdout = $input.first().json.stdout;\n\ntry {\n  const result = JSON.parse(stdout);\n  \n  if (result.error) {\n    throw new Error(result.error);\n  }\n  \n  return [{ json: { \n    githubContent: result.rawContent,\n    extractedContent: result.blogPostContent,\n    fileName: 'blogPostContent.ts'\n  } }];\n} catch (error) {\n  throw new Error(`Failed to parse GitHub content: ${error.message}`);\n}"
+      },
+      "id": "parse-github-content",
+      "name": "Parse GitHub Content",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [256, 640]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Parse JSON output from Compare Content Python\nconst stdout = $input.first().json.stdout;\n\ntry {\n  const result = JSON.parse(stdout);\n  \n  if (result.error) {\n    throw new Error(result.error);\n  }\n  \n  return [{ json: { \n    hasChanges: result.hasChanges,\n    existingCount: result.existingCount,\n    newCount: result.newCount,\n    newPost: result.newPost,\n    mergedContent: result.mergedContent,\n    message: result.message || null,\n    error: result.error || null\n  } }];\n} catch (error) {\n  throw new Error(`Failed to parse compare result: ${error.message}`);\n}"
+      },
+      "id": "parse-compare-result",
+      "name": "Parse Compare Result",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [512, 624]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Parse existing GitHub content and merge with new snippet\nconst existingContent = $('Parse GitHub Content').item.json.extractedContent;\nconst newSnippet = $('Validate Snippet2').item.json.snippet;\n\n// Extract blogPostContent array from existing file\nconst existingMatch = existingContent.match(/export const blogPostContent = (\\[.*?\\]);/s);\nconst existingArray = existingMatch ? JSON.parse(existingMatch[1]) : [];\n\n// Extract new blog post from snippet\nconst snippetMatch = newSnippet.match(/export const newBlogPost = (\\{.*?\\});/s);\nconst newBlogPost = snippetMatch ? JSON.parse(snippetMatch[1]) : null;\n\nif (!newBlogPost) {\n  throw new Error('Invalid snippet format - could not extract newBlogPost');\n}\n\n// Check for duplicate slug\nconst existingSlugs = existingArray.map(post => post.slug);\nif (existingSlugs.includes(newBlogPost.slug)) {\n  throw new Error(`Blog post with slug '${newBlogPost.slug}' already exists`);\n}\n\n// Merge content\nconst mergedArray = [...existingArray, newBlogPost];\n\n// Generate updated TypeScript file\nconst updatedContent = `export const blogPostContent = ${JSON.stringify(mergedArray, null, 2)};`;\n\nreturn [{ json: { mergedContent: updatedContent, newPostCount: mergedArray.length, addedSlug: newBlogPost.slug } }];"
       },
       "id": "d458b0cd-b4e3-4066-bff5-26c74acd3e75",
       "name": "Merge Content2",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [512, 512]
+      "position": [704, 512]
     },
     {
       "parameters": {
@@ -457,7 +479,7 @@
       "main": [
         [
           {
-            "node": "Compare Content Python",
+            "node": "Parse GitHub Content",
             "type": "main",
             "index": 0
           }
@@ -479,6 +501,17 @@
       "main": [
         [
           {
+            "node": "Parse GitHub Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse GitHub Content": {
+      "main": [
+        [
+          {
             "node": "Compare Content Python",
             "type": "main",
             "index": 0
@@ -487,6 +520,17 @@
       ]
     },
     "Compare Content Python": {
+      "main": [
+        [
+          {
+            "node": "Parse Compare Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Compare Result": {
       "main": [
         [
           {
