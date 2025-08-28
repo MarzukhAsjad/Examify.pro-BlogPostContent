@@ -2,23 +2,54 @@
   "nodes": [
     {
       "parameters": {},
-      "id": "56d08bdf-afa2-429d-b031-727a365360e6",
-      "name": "Execute workflow",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
-      "position": [-1344, 752]
+      "position": [-2592, 2112],
+      "id": "b566acec-f74e-4c23-abfe-5cec3eb61ef9",
+      "name": "When clicking 'Execute workflow'"
     },
     {
       "parameters": {
-        "content": "## File naming convention when uploading file to Drive\n\nUpload file to the \"Blogs\" folder in \"Marketing\". Make sure it contains **Content** if it is a content file and **Preview** if it is a preview file\n\n### Expected Snippet Formats:\n\n**Blog Post Content Snippet:**\n```typescript\nexport const newBlogPost: BlogPostContent = {\n  slug: 'new-blog-post',\n  title: 'New Blog Post Title',\n  date: '2025-01-20',\n  authors: ['Author Name'],\n  tags: ['tag1', 'tag2'],\n  image: '/image.jpg',\n  excerpt: 'Blog post excerpt...',\n  content: 'Blog post content...',\n  richContent: [...]\n};\n```\n\n**Blog Preview Snippet:**\n```typescript\nexport const newBlogPreview: BlogPreview = {\n  slug: 'new-blog-post',\n  title: 'New Blog Post Title',\n  date: '2025-01-20',\n  excerpt: 'Blog post excerpt...',\n  image: '/image.jpg'\n};\n```",
-        "height": 688,
-        "width": 528
+        "options": {}
       },
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [-1504, -656],
-      "typeVersion": 1,
-      "id": "0b4c124f-2e9f-47a0-b44f-c036c7d5abd2",
-      "name": "Sticky Note1"
+      "id": "dc7f895b-c9ab-48f7-add0-fbb7e3a7d5e5",
+      "name": "Set date1",
+      "type": "n8n-nodes-base.dateTime",
+      "typeVersion": 2,
+      "position": [-2112, 1680]
+    },
+    {
+      "parameters": {
+        "operation": "formatDate",
+        "date": "={{ $json.currentDate }}",
+        "format": "custom",
+        "customFormat": "dd-MM-yyyy/H:mm",
+        "options": {}
+      },
+      "id": "6170d1c4-ec16-4a84-b28a-d40ae5f24a04",
+      "name": "Format date2",
+      "type": "n8n-nodes-base.dateTime",
+      "typeVersion": 2,
+      "position": [-1904, 1680]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "commitDate",
+              "value": "={{ $json.formattedDate }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "581aadc8-914f-4327-89d1-dd4c3e99a9ba",
+      "name": "Set commit date2",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [-1680, 1680]
     },
     {
       "parameters": {
@@ -39,7 +70,7 @@
       },
       "type": "n8n-nodes-base.googleDrive",
       "typeVersion": 3,
-      "position": [-448, 624],
+      "position": [-1472, 1552],
       "id": "d3294d3c-0724-4e7d-8b51-ddf76c28e5d4",
       "name": "Search for blogPostContent snippet1",
       "alwaysOutputData": true,
@@ -62,7 +93,7 @@
       },
       "type": "n8n-nodes-base.googleDrive",
       "typeVersion": 3,
-      "position": [-272, 624],
+      "position": [-1296, 1552],
       "id": "c0ac6cc3-0246-443f-996f-ef851b38d55b",
       "name": "Download snippet from Google Drive1",
       "alwaysOutputData": true,
@@ -86,7 +117,7 @@
       "name": "Get GitHub blogPostContent.ts2",
       "type": "n8n-nodes-base.github",
       "typeVersion": 1,
-      "position": [-64, 640],
+      "position": [-1088, 1568],
       "webhookId": "73e2fcde-3956-43c7-aca9-f7237fd4ff11",
       "credentials": {
         "githubApi": {
@@ -97,23 +128,13 @@
     },
     {
       "parameters": {
-        "functionCode": "// Decode base64 content from GitHub\nconst githubContent = Buffer.from($input.first().json.content, 'base64').toString('utf8');\nreturn [{ json: { githubContent, fileName: 'blogPostContent.ts' } }];"
-      },
-      "id": "91393db0-c2c8-43c4-b1fc-79a526d37a2f",
-      "name": "Decode GitHub Content2",
-      "type": "n8n-nodes-base.function",
-      "typeVersion": 1,
-      "position": [128, 640]
-    },
-    {
-      "parameters": {
         "functionCode": "// Extract snippet from downloaded file\nconst snippet = Buffer.from($input.first().json.data, 'base64').toString('utf8');\n\n// Basic validation - check if it contains required elements\nif (!snippet.includes('slug') || !snippet.includes('title') || !snippet.includes('date')) {\n  throw new Error('Snippet must contain slug, title, and date fields');\n}\n\n// Check if it's a blog post snippet\nif (snippet.includes('newBlogPost') || snippet.includes('content') || snippet.includes('richContent')) {\n  return [{ json: { \n    validSnippet: true, \n    snippet: snippet,\n    originalSnippet: snippet,\n    fileName: 'blogPostContent-snippet',\n    snippetType: 'blogPost'\n  } }];\n}\n\n// Check if it's a blog preview snippet\nif (snippet.includes('newBlogPreview') || snippet.includes('excerpt')) {\n  return [{ json: { \n    validSnippet: true, \n    snippet: snippet,\n    originalSnippet: snippet,\n    fileName: 'blogPreviews-snippet',\n    snippetType: 'blogPreview'\n  } }];\n}\n\nthrow new Error('Snippet must be either a blog post or blog preview format');"
       },
       "id": "75fad90c-e4db-46c6-9ba0-cbb06c4fe360",
       "name": "Validate Snippet2",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [-64, 496]
+      "position": [-1088, 1424]
     },
     {
       "parameters": {
@@ -124,7 +145,17 @@
       "name": "Extract GitHub Content",
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
-      "position": [128, 640]
+      "position": [-896, 1568]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Parse JSON output from Extract GitHub Content\nconst stdout = $input.first().json.stdout;\n\ntry {\n  const result = JSON.parse(stdout);\n  \n  if (result.error) {\n    throw new Error(result.error);\n  }\n  \n  return [{ json: { \n    githubContent: result.rawContent,\n    extractedContent: result.blogPostContent,\n    fileName: 'blogPostContent.ts'\n  } }];\n} catch (error) {\n  throw new Error(`Failed to parse GitHub content: ${error.message}`);\n}"
+      },
+      "id": "parse-github-content",
+      "name": "Parse GitHub Content",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [-704, 1568]
     },
     {
       "parameters": {
@@ -135,17 +166,7 @@
       "name": "Compare Content Python",
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
-      "position": [320, 624]
-    },
-    {
-      "parameters": {
-        "functionCode": "// Parse JSON output from Extract GitHub Content\nconst stdout = $input.first().json.stdout;\n\ntry {\n  const result = JSON.parse(stdout);\n  \n  if (result.error) {\n    throw new Error(result.error);\n  }\n  \n  return [{ json: { \n    githubContent: result.rawContent,\n    extractedContent: result.blogPostContent,\n    fileName: 'blogPostContent.ts'\n  } }];\n} catch (error) {\n  throw new Error(`Failed to parse GitHub content: ${error.message}`);\n}"
-      },
-      "id": "parse-github-content",
-      "name": "Parse GitHub Content",
-      "type": "n8n-nodes-base.function",
-      "typeVersion": 1,
-      "position": [256, 640]
+      "position": [-512, 1440]
     },
     {
       "parameters": {
@@ -155,17 +176,17 @@
       "name": "Parse Compare Result",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [512, 624]
+      "position": [-320, 1440]
     },
     {
       "parameters": {
-        "functionCode": "// Parse existing GitHub content and merge with new snippet\nconst existingContent = $('Parse GitHub Content').item.json.extractedContent;\nconst newSnippet = $('Validate Snippet2').item.json.snippet;\n\n// Extract blogPostContent array from existing file\nconst existingMatch = existingContent.match(/export const blogPostContent = (\\[.*?\\]);/s);\nconst existingArray = existingMatch ? JSON.parse(existingMatch[1]) : [];\n\n// Extract new blog post from snippet\nconst snippetMatch = newSnippet.match(/export const newBlogPost = (\\{.*?\\});/s);\nconst newBlogPost = snippetMatch ? JSON.parse(snippetMatch[1]) : null;\n\nif (!newBlogPost) {\n  throw new Error('Invalid snippet format - could not extract newBlogPost');\n}\n\n// Check for duplicate slug\nconst existingSlugs = existingArray.map(post => post.slug);\nif (existingSlugs.includes(newBlogPost.slug)) {\n  throw new Error(`Blog post with slug '${newBlogPost.slug}' already exists`);\n}\n\n// Merge content\nconst mergedArray = [...existingArray, newBlogPost];\n\n// Generate updated TypeScript file\nconst updatedContent = `export const blogPostContent = ${JSON.stringify(mergedArray, null, 2)};`;\n\nreturn [{ json: { mergedContent: updatedContent, newPostCount: mergedArray.length, addedSlug: newBlogPost.slug } }];"
+        "functionCode": "// Generate updated TypeScript file from merged content\nconst mergedContent = $input.first().json.mergedContent;\nconst newPost = $input.first().json.newPost;\n\n// Generate updated TypeScript file\nconst updatedContent = `export const blogPostContent = ${JSON.stringify(mergedContent, null, 2)};`;\n\nreturn [{ json: { \n  mergedContent: updatedContent, \n  newPostCount: mergedContent.length, \n  addedSlug: newPost.slug \n} }];"
       },
       "id": "d458b0cd-b4e3-4066-bff5-26c74acd3e75",
       "name": "Merge Content2",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [704, 512]
+      "position": [-128, 1440]
     },
     {
       "parameters": {
@@ -175,7 +196,7 @@
       "name": "Content Safety Check2",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [704, 512]
+      "position": [64, 1440]
     },
     {
       "parameters": {
@@ -184,14 +205,14 @@
         "owner": "chefmatteo",
         "repository": "Examify.pro-BlogPostContent",
         "filePath": "data/blogPostContent.ts",
-        "fileContent": "[empty]",
-        "commitMessage": "Auto-merge new blog post from Google Drive snippet: {{ $json.formattedDate }}"
+        "fileContent": "={{ $('Merge Content2').item.json.mergedContent }}",
+        "commitMessage": "Auto-merge new blog post from Google Drive snippet: {{ $json.commitDate }}"
       },
       "id": "567f45d6-981a-4a6d-a963-252c70fe8575",
       "name": "Update GitHub with Merged Content2",
       "type": "n8n-nodes-base.github",
       "typeVersion": 1,
-      "position": [896, 512],
+      "position": [256, 1440],
       "webhookId": "a8d0f9e6-87eb-4578-8ce6-9e6f3fa300ae",
       "alwaysOutputData": true,
       "credentials": {
@@ -203,13 +224,13 @@
     },
     {
       "parameters": {
-        "functionCode": "// Log successful merge\nconst addedSlug = $('Merge Content').item.json.addedSlug;\nconst newPostCount = $('Merge Content').item.json.newPostCount;\n\nreturn [{ json: { \n  message: `Successfully merged new blog post: ${addedSlug}`,\n  totalPosts: newPostCount,\n  timestamp: new Date().toISOString(),\n  action: 'merge_success'\n} }];"
+        "functionCode": "// Log successful merge\nconst addedSlug = $('Merge Content2').item.json.addedSlug;\nconst newPostCount = $('Merge Content2').item.json.newPostCount;\n\nreturn [{ json: { \n  message: `Successfully merged new blog post: ${addedSlug}`,\n  totalPosts: newPostCount,\n  timestamp: new Date().toISOString(),\n  action: 'merge_success'\n} }];"
       },
       "id": "180a06f2-7389-48a6-b0b6-60a438a6ac0b",
       "name": "Log Success2",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [1088, 512]
+      "position": [448, 1440]
     },
     {
       "parameters": {
@@ -219,7 +240,7 @@
       "name": "Log No Action2",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [512, 736]
+      "position": [-320, 1664]
     },
     {
       "parameters": {
@@ -240,7 +261,7 @@
       },
       "type": "n8n-nodes-base.googleDrive",
       "typeVersion": 3,
-      "position": [-448, 832],
+      "position": [-1472, 1760],
       "id": "244cd3b3-cbd9-4db7-aff1-932942497b77",
       "name": "Search for blogPreviews snippet1",
       "alwaysOutputData": true,
@@ -259,7 +280,7 @@
       },
       "type": "n8n-nodes-base.googleDrive",
       "typeVersion": 3,
-      "position": [-256, 832],
+      "position": [-1280, 1760],
       "id": "53443d23-b6f7-4cc2-9cf6-28e9539b86e0",
       "name": "Download preview snippet from Google Drive1",
       "credentials": {
@@ -282,7 +303,7 @@
       "name": "Get GitHub blogPreviews.ts2",
       "type": "n8n-nodes-base.github",
       "typeVersion": 1,
-      "position": [-64, 800],
+      "position": [-1088, 1728],
       "webhookId": "07b62aa6-12b2-42a0-8be4-25a06e2dedde",
       "credentials": {
         "githubApi": {
@@ -299,35 +320,59 @@
       "name": "Validate Preview Snippet2",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [-64, 960]
+      "position": [-1088, 1888]
     },
     {
       "parameters": {
-        "conditions": {
-          "string": [
-            {
-              "value1": "={{ $('Validate Snippet2').item.json.snippet }}",
-              "operation": "equals",
-              "value2": "={{ $('Extract GitHub Content').item.json.extractedContent }}"
-            }
-          ]
-        }
+        "command": "python3 ./compare_node/extract_github_content.py blogPreviews \"{{ $json.content }}\"",
+        "options": {}
       },
-      "id": "5e25313b-5348-4ac8-ae9e-2efd38f09d24",
-      "name": "Compare Content2",
-      "type": "n8n-nodes-base.if",
+      "id": "extract-github-previews",
+      "name": "Extract GitHub Previews",
+      "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
-      "position": [320, 624]
+      "position": [-896, 1728]
     },
     {
       "parameters": {
-        "functionCode": "// Parse existing GitHub content and merge with new preview snippet\nconst existingContent = $('Extract GitHub Content').item.json.extractedContent;\nconst newSnippet = $('Validate Preview Snippet').item.json.snippet;\n\n// Extract blogPreviews array from existing file\nconst existingMatch = existingContent.match(/export const blogPreviews = (\\[.*?\\]);/s);\nconst existingArray = existingMatch ? JSON.parse(existingMatch[1]) : [];\n\n// Extract new blog preview from snippet\nconst snippetMatch = newSnippet.match(/export const newBlogPreview = (\\{.*?\\});/s);\nconst newBlogPreview = snippetMatch ? JSON.parse(snippetMatch[1]) : null;\n\nif (!newBlogPreview) {\n  throw new Error('Invalid snippet format - could not extract newBlogPreview');\n}\n\n// Check for duplicate slug\nconst existingSlugs = existingArray.map(preview => preview.slug);\nif (existingSlugs.includes(newBlogPreview.slug)) {\n  throw new Error(`Blog preview with slug '${newBlogPreview.slug}' already exists`);\n}\n\n// Merge content\nconst mergedArray = [...existingArray, newBlogPreview];\n\n// Generate updated TypeScript file\nconst updatedContent = `export const blogPreviews = ${JSON.stringify(mergedArray, null, 2)};`;\n\nreturn [{ json: { mergedContent: updatedContent, newPreviewCount: mergedArray.length, addedSlug: newBlogPreview.slug } }];"
+        "functionCode": "// Parse JSON output from Extract GitHub Previews\nconst stdout = $input.first().json.stdout;\n\ntry {\n  const result = JSON.parse(stdout);\n  \n  if (result.error) {\n    throw new Error(result.error);\n  }\n  \n  return [{ json: { \n    githubContent: result.rawContent,\n    extractedContent: result.blogPreviews,\n    fileName: 'blogPreviews.ts'\n  } }];\n} catch (error) {\n  throw new Error(`Failed to parse GitHub previews: ${error.message}`);\n}"
+      },
+      "id": "parse-github-previews",
+      "name": "Parse GitHub Previews",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [-704, 1728]
+    },
+    {
+      "parameters": {
+        "command": "python3 ./compare_node/compare_content.py blogPreviews \"{{ $('Parse GitHub Previews').item.json.githubContent }}\" \"{{ $('Validate Preview Snippet2').item.json.snippet }}\"",
+        "options": {}
+      },
+      "id": "compare-previews-python",
+      "name": "Compare Previews Python",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [-512, 1856]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Parse JSON output from Compare Previews Python\nconst stdout = $input.first().json.stdout;\n\ntry {\n  const result = JSON.parse(stdout);\n  \n  if (result.error) {\n    throw new Error(result.error);\n  }\n  \n  return [{ json: { \n    hasChanges: result.hasChanges,\n    existingCount: result.existingCount,\n    newCount: result.newCount,\n    newPreview: result.newPreview,\n    mergedContent: result.mergedContent,\n    message: result.message || null,\n    error: result.error || null\n  } }];\n} catch (error) {\n  throw new Error(`Failed to parse preview compare result: ${error.message}`);\n}"
+      },
+      "id": "parse-preview-result",
+      "name": "Parse Preview Result",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [-320, 1856]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Generate updated TypeScript file from merged preview content\nconst mergedContent = $input.first().json.mergedContent;\nconst newPreview = $input.first().json.newPreview;\n\n// Generate updated TypeScript file\nconst updatedContent = `export const blogPreviews = ${JSON.stringify(mergedContent, null, 2)};`;\n\nreturn [{ json: { \n  mergedContent: updatedContent, \n  newPreviewCount: mergedContent.length, \n  addedSlug: newPreview.slug \n} }];"
       },
       "id": "6f7ceec8-cb96-456f-85fa-8f6ddd87e5e9",
       "name": "Merge Preview Content2",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [512, 928]
+      "position": [-128, 1856]
     },
     {
       "parameters": {
@@ -337,7 +382,7 @@
       "name": "Preview Safety Check2",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [704, 928]
+      "position": [64, 1856]
     },
     {
       "parameters": {
@@ -346,14 +391,14 @@
         "owner": "chefmatteo",
         "repository": "Examify.pro-BlogPostContent",
         "filePath": "data/blogPreviews.ts",
-        "fileContent": "[empty]",
-        "commitMessage": "Auto-merge new blog preview from Google Drive snippet: {{ $json.formattedDate }}"
+        "fileContent": "={{ $('Merge Preview Content2').item.json.mergedContent }}",
+        "commitMessage": "Auto-merge new blog preview from Google Drive snippet: {{ $json.commitDate }}"
       },
       "id": "ad710d33-e6a9-4eb3-9202-5ba6abf80b19",
       "name": "Update GitHub with Merged Preview2",
       "type": "n8n-nodes-base.github",
       "typeVersion": 1,
-      "position": [896, 928],
+      "position": [256, 1856],
       "webhookId": "45d18e49-4ac4-471b-af2e-7eec33da7075",
       "credentials": {
         "githubApi": {
@@ -364,13 +409,13 @@
     },
     {
       "parameters": {
-        "functionCode": "// Log successful preview merge\nconst addedSlug = $('Merge Preview Content').item.json.addedSlug;\nconst newPreviewCount = $('Merge Preview Content').item.json.newPreviewCount;\n\nreturn [{ json: { \n  message: `Successfully merged new blog preview: ${addedSlug}`,\n  totalPreviews: newPreviewCount,\n  timestamp: new Date().toISOString(),\n  action: 'preview_merge_success'\n} }];"
+        "functionCode": "// Log successful preview merge\nconst addedSlug = $('Merge Preview Content2').item.json.addedSlug;\nconst newPreviewCount = $('Merge Preview Content2').item.json.newPreviewCount;\n\nreturn [{ json: { \n  message: `Successfully merged new blog preview: ${addedSlug}`,\n  totalPreviews: newPreviewCount,\n  timestamp: new Date().toISOString(),\n  action: 'preview_merge_success'\n} }];"
       },
       "id": "6ca76c5b-7c56-4b91-9ad1-d5308697ea70",
       "name": "Log Preview Success2",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [1088, 928]
+      "position": [448, 1856]
     },
     {
       "parameters": {
@@ -380,68 +425,53 @@
       "name": "Log Preview No Action2",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [512, 1152]
-    },
-    {
-      "parameters": {
-        "keepOnlySet": true,
-        "values": {
-          "string": [
-            {
-              "name": "commitDate",
-              "value": "={{ $json.formattedDate }}"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "581aadc8-914f-4327-89d1-dd4c3e99a9ba",
-      "name": "Set commit date2",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 2,
-      "position": [-656, 752]
-    },
-    {
-      "parameters": {
-        "options": {}
-      },
-      "id": "dc7f895b-c9ab-48f7-add0-fbb7e3a7d5e5",
-      "name": "Set date1",
-      "type": "n8n-nodes-base.dateTime",
-      "typeVersion": 2,
-      "position": [-1088, 752]
-    },
-    {
-      "parameters": {
-        "operation": "formatDate",
-        "date": "={{ $json.currentDate }}",
-        "format": "custom",
-        "customFormat": "dd-MM-yyyy/H:mm",
-        "options": {}
-      },
-      "id": "6170d1c4-ec16-4a84-b28a-d40ae5f24a04",
-      "name": "Format date2",
-      "type": "n8n-nodes-base.dateTime",
-      "typeVersion": 2,
-      "position": [-880, 752]
-    },
-    {
-      "parameters": {
-        "functionCode": "// Decode base64 content from GitHub\nconst githubContent = Buffer.from($input.first().json.content, 'base64').toString('utf8');\nreturn [{ json: { githubContent, fileName: 'blogPostContent.ts' } }];"
-      },
-      "id": "09155f91-33c5-4999-b900-c6e38a175599",
-      "name": "Decode GitHub Content3",
-      "type": "n8n-nodes-base.function",
-      "typeVersion": 1,
-      "position": [128, 816]
+      "position": [-320, 2080]
     }
   ],
   "connections": {
-    "Execute workflow": {
+    "When clicking 'Execute workflow'": {
       "main": [
         [
           {
             "node": "Set date1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set date1": {
+      "main": [
+        [
+          {
+            "node": "Format date2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format date2": {
+      "main": [
+        [
+          {
+            "node": "Set commit date2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set commit date2": {
+      "main": [
+        [
+          {
+            "node": "Search for blogPostContent snippet1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Search for blogPreviews snippet1",
             "type": "main",
             "index": 0
           }
@@ -475,17 +505,6 @@
         ]
       ]
     },
-    "Validate Snippet2": {
-      "main": [
-        [
-          {
-            "node": "Parse GitHub Content",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Get GitHub blogPostContent.ts2": {
       "main": [
         [
@@ -509,6 +528,17 @@
       ]
     },
     "Parse GitHub Content": {
+      "main": [
+        [
+          {
+            "node": "Compare Content Python",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Snippet2": {
       "main": [
         [
           {
@@ -612,7 +642,29 @@
       "main": [
         [
           {
-            "node": "Decode GitHub Content3",
+            "node": "Extract GitHub Previews",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract GitHub Previews": {
+      "main": [
+        [
+          {
+            "node": "Parse GitHub Previews",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse GitHub Previews": {
+      "main": [
+        [
+          {
+            "node": "Compare Previews Python",
             "type": "main",
             "index": 0
           }
@@ -623,14 +675,25 @@
       "main": [
         [
           {
-            "node": "Compare Preview Content2",
+            "node": "Compare Previews Python",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Compare Preview Content2": {
+    "Compare Previews Python": {
+      "main": [
+        [
+          {
+            "node": "Parse Preview Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Preview Result": {
       "main": [
         [
           {
@@ -675,55 +738,6 @@
         [
           {
             "node": "Log Preview Success2",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Set commit date2": {
-      "main": [
-        [
-          {
-            "node": "Search for blogPostContent snippet1",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Search for blogPreviews snippet1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Set date1": {
-      "main": [
-        [
-          {
-            "node": "Format date2",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Format date2": {
-      "main": [
-        [
-          {
-            "node": "Set commit date2",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Decode GitHub Content3": {
-      "main": [
-        [
-          {
-            "node": "Compare Preview Content2",
             "type": "main",
             "index": 0
           }

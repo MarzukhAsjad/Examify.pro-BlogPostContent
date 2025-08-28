@@ -6,3 +6,6 @@ The naming system for the data files is as follows:
 For example:
 - `C_auto_1.ts` is the first automated content data file.
 - `P_auto_1.ts` is the first automated preview data file.
+
+Thus the keyword here is the `C_auto` and `P_auto`.
+gi
