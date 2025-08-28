@@ -6,10 +6,7 @@
       "name": "Execute workflow",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
-      "position": [
-        -1344,
-        752
-      ]
+      "position": [-1344, 752]
     },
     {
       "parameters": {
@@ -18,10 +15,7 @@
         "width": 528
       },
       "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        -1504,
-        -656
-      ],
+      "position": [-1504, -656],
       "typeVersion": 1,
       "id": "0b4c124f-2e9f-47a0-b44f-c036c7d5abd2",
       "name": "Sticky Note1"
@@ -45,10 +39,7 @@
       },
       "type": "n8n-nodes-base.googleDrive",
       "typeVersion": 3,
-      "position": [
-        -448,
-        624
-      ],
+      "position": [-448, 624],
       "id": "d3294d3c-0724-4e7d-8b51-ddf76c28e5d4",
       "name": "Search for blogPostContent snippet1",
       "alwaysOutputData": true,
@@ -71,10 +62,7 @@
       },
       "type": "n8n-nodes-base.googleDrive",
       "typeVersion": 3,
-      "position": [
-        -272,
-        624
-      ],
+      "position": [-272, 624],
       "id": "c0ac6cc3-0246-443f-996f-ef851b38d55b",
       "name": "Download snippet from Google Drive1",
       "alwaysOutputData": true,
@@ -98,10 +86,7 @@
       "name": "Get GitHub blogPostContent.ts2",
       "type": "n8n-nodes-base.github",
       "typeVersion": 1,
-      "position": [
-        -64,
-        640
-      ],
+      "position": [-64, 640],
       "webhookId": "73e2fcde-3956-43c7-aca9-f7237fd4ff11",
       "credentials": {
         "githubApi": {
@@ -118,36 +103,47 @@
       "name": "Decode GitHub Content2",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [
-        128,
-        640
-      ]
+      "position": [128, 640]
     },
     {
       "parameters": {
-        "functionCode": "// Extract and format snippet from downloaded file\nconst snippet = Buffer.from($input.first().json.data, 'base64').toString('utf8');\n\n// Function to convert raw object to proper TypeScript export\nfunction formatSnippetToExport(rawContent) {\n  // Remove any trailing semicolon and whitespace\n  let cleaned = rawContent.trim().replace(/;\\s*$/, '');\n  \n  // If it's already an export statement, return as is\n  if (cleaned.includes('export const newBlogPost')) {\n    return cleaned;\n  }\n  \n  // If it's a raw object, wrap it in export statement\n  if (cleaned.startsWith('{') && cleaned.endsWith('}')) {\n    // Add quotes to property names if missing (convert to valid JSON)\n    let jsonString = cleaned\n      .replace(/(\\w+):/g, '\"$1\":') // Add quotes to property names\n      .replace(/,\\s*}/g, '}') // Remove trailing commas\n      .replace(/,\\s*]/g, ']'); // Remove trailing commas in arrays\n    \n    try {\n      // Validate JSON structure\n      JSON.parse(jsonString);\n      return `export const newBlogPost = ${cleaned};`;\n    } catch (error) {\n      throw new Error(`Invalid object format: ${error.message}`);\n    }\n  }\n  \n  throw new Error('File must contain either a raw object or export const newBlogPost statement');\n}\n\n// Function to validate BlogPostContent structure according to type definition\nfunction validateBlogPostContent(obj) {\n  const errors = [];\n  \n  // Required fields according to BlogPostContent type\n  const requiredFields = {\n    slug: 'string',\n    title: 'string', \n    date: 'string',\n    authors: 'array',\n    tags: 'array',\n    image: 'string'\n  };\n  \n  // Optional fields\n  const optionalFields = {\n    featured: 'boolean',\n    excerpt: 'string',\n    content: 'string',\n    others: 'string',\n    richContent: 'array',\n    links: 'object'\n  };\n  \n  // Check required fields\n  for (const [field, expectedType] of Object.entries(requiredFields)) {\n    if (!(field in obj)) {\n      errors.push(`Missing required field: ${field}`);\n      continue;\n    }\n    \n    const value = obj[field];\n    if (expectedType === 'string' && typeof value !== 'string') {\n      errors.push(`Field '${field}' must be a string, got ${typeof value}`);\n    } else if (expectedType === 'array' && !Array.isArray(value)) {\n      errors.push(`Field '${field}' must be an array, got ${typeof value}`);\n    }\n  }\n  \n  // Check optional fields if present\n  for (const [field, expectedType] of Object.entries(optionalFields)) {\n    if (field in obj) {\n      const value = obj[field];\n      if (expectedType === 'string' && typeof value !== 'string') {\n        errors.push(`Field '${field}' must be a string, got ${typeof value}`);\n      } else if (expectedType === 'boolean' && typeof value !== 'boolean') {\n        errors.push(`Field '${field}' must be a boolean, got ${typeof value}`);\n      } else if (expectedType === 'array' && !Array.isArray(value)) {\n        errors.push(`Field '${field}' must be an array, got ${typeof value}`);\n      } else if (expectedType === 'object' && typeof value !== 'object' || Array.isArray(value)) {\n        errors.push(`Field '${field}' must be an object, got ${typeof value}`);\n      }\n    }\n  }\n  \n  // Validate specific field constraints\n  if (obj.slug && typeof obj.slug === 'string') {\n    if (obj.slug.trim() === '') {\n      errors.push('Field \'slug\' cannot be empty');\n    }\n    if (!/^[a-z0-9-]+$/.test(obj.slug)) {\n      errors.push('Field \'slug\' must contain only lowercase letters, numbers, and hyphens');\n    }\n  }\n  \n  if (obj.date && typeof obj.date === 'string') {\n    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(obj.date)) {\n      errors.push('Field \'date\' must be in YYYY-MM-DD format');\n    }\n  }\n  \n  if (obj.authors && Array.isArray(obj.authors)) {\n    if (obj.authors.length === 0) {\n      errors.push('Field \'authors\' cannot be empty array');\n    }\n    for (const author of obj.authors) {\n      if (typeof author !== 'string') {\n        errors.push('All authors must be strings');\n        break;\n      }\n    }\n  }\n  \n  if (obj.tags && Array.isArray(obj.tags)) {\n    for (const tag of obj.tags) {\n      if (typeof tag !== 'string') {\n        errors.push('All tags must be strings');\n        break;\n      }\n    }\n  }\n  \n  if (obj.richContent && Array.isArray(obj.richContent)) {\n    for (const block of obj.richContent) {\n      if (typeof block !== 'object' || Array.isArray(block)) {\n        errors.push('All richContent blocks must be objects');\n        break;\n      }\n      if (!block.type || !['text', 'image', 'quote', 'subheading'].includes(block.type)) {\n        errors.push('Each richContent block must have a valid type (text, image, quote, subheading)');\n        break;\n      }\n      if (!block.content || typeof block.content !== 'string') {\n        errors.push('Each richContent block must have a content string');\n        break;\n      }\n    }\n  }\n  \n  return errors;\n}\n\n// Format the snippet\nconst formattedSnippet = formatSnippetToExport(snippet);\n\n// Extract the object from the formatted snippet\nconst objectMatch = formattedSnippet.match(/export const newBlogPost\\s*=\\s*(\\{.*?\\});/s);\nif (!objectMatch) {\n  throw new Error('Could not extract object from formatted snippet');\n}\n\n// Parse the object for validation\nlet blogPostObject;\ntry {\n  // Convert to valid JSON for parsing\n  const jsonString = objectMatch[1]\n    .replace(/(\\w+):/g, '\"$1\":') // Add quotes to property names\n    .replace(/,\\s*}/g, '}') // Remove trailing commas\n    .replace(/,\\s*]/g, ']'); // Remove trailing commas in arrays\n  \n  blogPostObject = JSON.parse(jsonString);\n} catch (error) {\n  throw new Error(`Failed to parse blog post object: ${error.message}`);\n}\n\n// Validate the object structure\nconst validationErrors = validateBlogPostContent(blogPostObject);\nif (validationErrors.length > 0) {\n  throw new Error(`Validation errors:\\n${validationErrors.join('\\n')}`);\n}\n\nreturn [{ json: { \n  validSnippet: true, \n  snippet: formattedSnippet, \n  originalSnippet: snippet,\n  fileName: 'blogPostContent-snippet',\n  validatedObject: blogPostObject\n} }];"
+        "functionCode": "// Extract snippet from downloaded file\nconst snippet = Buffer.from($input.first().json.data, 'base64').toString('utf8');\n\n// Basic validation - check if it contains required elements\nif (!snippet.includes('slug') || !snippet.includes('title') || !snippet.includes('date')) {\n  throw new Error('Snippet must contain slug, title, and date fields');\n}\n\n// Check if it's a blog post snippet\nif (snippet.includes('newBlogPost') || snippet.includes('content') || snippet.includes('richContent')) {\n  return [{ json: { \n    validSnippet: true, \n    snippet: snippet,\n    originalSnippet: snippet,\n    fileName: 'blogPostContent-snippet',\n    snippetType: 'blogPost'\n  } }];\n}\n\n// Check if it's a blog preview snippet\nif (snippet.includes('newBlogPreview') || snippet.includes('excerpt')) {\n  return [{ json: { \n    validSnippet: true, \n    snippet: snippet,\n    originalSnippet: snippet,\n    fileName: 'blogPreviews-snippet',\n    snippetType: 'blogPreview'\n  } }];\n}\n\nthrow new Error('Snippet must be either a blog post or blog preview format');"
       },
       "id": "75fad90c-e4db-46c6-9ba0-cbb06c4fe360",
       "name": "Validate Snippet2",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [
-        -64,
-        496
-      ]
+      "position": [-64, 496]
     },
     {
       "parameters": {
-        "functionCode": "// Parse existing GitHub content and merge with new snippet\nconst existingContent = $('Decode GitHub Content').item.json.githubContent;\nconst newSnippet = $('Validate Snippet').item.json.snippet;\n\n// Extract blogPostContent array from existing file\nconst existingMatch = existingContent.match(/export const blogPostContent = (\\[.*?\\]);/s);\nconst existingArray = existingMatch ? JSON.parse(existingMatch[1]) : [];\n\n// Extract new blog post from snippet\nconst snippetMatch = newSnippet.match(/export const newBlogPost = (\\{.*?\\});/s);\nconst newBlogPost = snippetMatch ? JSON.parse(snippetMatch[1]) : null;\n\nif (!newBlogPost) {\n  throw new Error('Invalid snippet format - could not extract newBlogPost');\n}\n\n// Check for duplicate slug\nconst existingSlugs = existingArray.map(post => post.slug);\nif (existingSlugs.includes(newBlogPost.slug)) {\n  throw new Error(`Blog post with slug '${newBlogPost.slug}' already exists`);\n}\n\n// Merge content\nconst mergedArray = [...existingArray, newBlogPost];\n\n// Generate updated TypeScript file\nconst updatedContent = `export const blogPostContent = ${JSON.stringify(mergedArray, null, 2)};`;\n\nreturn [{ json: { mergedContent: updatedContent, newPostCount: mergedArray.length, addedSlug: newBlogPost.slug } }];"
+        "functionCode": "// Use Python script to extract GitHub content\nconst { exec } = require('child_process');\nconst util = require('util');\nconst execAsync = util.promisify(exec);\n\nconst githubContent = $input.first().json.content;\nconst contentType = 'blogPostContent';\n\n// Call Python script\nconst pythonScript = './compare_node/extract_github_content.py';\nconst command = `python3 ${pythonScript} ${contentType} \"${githubContent}\"`;\n\ntry {\n  const { stdout, stderr } = await execAsync(command);\n  \n  if (stderr) {\n    throw new Error(`Python script error: ${stderr}`);\n  }\n  \n  const result = JSON.parse(stdout);\n  \n  if (result.error) {\n    throw new Error(result.error);\n  }\n  \n  return [{ json: { \n    githubContent: result.rawContent,\n    extractedContent: result.blogPostContent,\n    fileName: 'blogPostContent.ts'\n  } }];\n} catch (error) {\n  throw new Error(`Failed to extract GitHub content: ${error.message}`);\n}"
+      },
+      "id": "extract-github-content",
+      "name": "Extract GitHub Content",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [128, 640]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Use Python script to compare content\nconst { exec } = require('child_process');\nconst util = require('util');\nconst execAsync = util.promisify(exec);\n\nconst githubContent = $('Extract GitHub Content').item.json.githubContent;\nconst snippetContent = $('Validate Snippet2').item.json.snippet;\nconst contentType = 'blogPostContent';\n\n// Call Python script\nconst pythonScript = './compare_node/compare_content.py';\nconst command = `python3 ${pythonScript} ${contentType} \"${githubContent}\" \"${snippetContent}\"`;\n\ntry {\n  const { stdout, stderr } = await execAsync(command);\n  \n  if (stderr) {\n    throw new Error(`Python script error: ${stderr}`);\n  }\n  \n  const result = JSON.parse(stdout);\n  \n  if (result.error) {\n    throw new Error(result.error);\n  }\n  \n  return [{ json: { \n    hasChanges: result.hasChanges,\n    existingCount: result.existingCount,\n    newCount: result.newCount,\n    newPost: result.newPost,\n    mergedContent: result.mergedContent,\n    message: result.message || null,\n    error: result.error || null\n  } }];\n} catch (error) {\n  throw new Error(`Failed to compare content: ${error.message}`);\n}"
+      },
+      "id": "compare-content-python",
+      "name": "Compare Content Python",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [320, 624]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Parse existing GitHub content and merge with new snippet\nconst existingContent = $('Extract GitHub Content').item.json.extractedContent;\nconst newSnippet = $('Validate Snippet2').item.json.snippet;\n\n// Extract blogPostContent array from existing file\nconst existingMatch = existingContent.match(/export const blogPostContent = (\\[.*?\\]);/s);\nconst existingArray = existingMatch ? JSON.parse(existingMatch[1]) : [];\n\n// Extract new blog post from snippet\nconst snippetMatch = newSnippet.match(/export const newBlogPost = (\\{.*?\\});/s);\nconst newBlogPost = snippetMatch ? JSON.parse(snippetMatch[1]) : null;\n\nif (!newBlogPost) {\n  throw new Error('Invalid snippet format - could not extract newBlogPost');\n}\n\n// Check for duplicate slug\nconst existingSlugs = existingArray.map(post => post.slug);\nif (existingSlugs.includes(newBlogPost.slug)) {\n  throw new Error(`Blog post with slug '${newBlogPost.slug}' already exists`);\n}\n\n// Merge content\nconst mergedArray = [...existingArray, newBlogPost];\n\n// Generate updated TypeScript file\nconst updatedContent = `export const blogPostContent = ${JSON.stringify(mergedArray, null, 2)};`;\n\nreturn [{ json: { mergedContent: updatedContent, newPostCount: mergedArray.length, addedSlug: newBlogPost.slug } }];"
       },
       "id": "d458b0cd-b4e3-4066-bff5-26c74acd3e75",
       "name": "Merge Content2",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [
-        512,
-        512
-      ]
+      "position": [512, 512]
     },
     {
       "parameters": {
@@ -157,10 +153,7 @@
       "name": "Content Safety Check2",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [
-        704,
-        512
-      ]
+      "position": [704, 512]
     },
     {
       "parameters": {
@@ -176,10 +169,7 @@
       "name": "Update GitHub with Merged Content2",
       "type": "n8n-nodes-base.github",
       "typeVersion": 1,
-      "position": [
-        896,
-        512
-      ],
+      "position": [896, 512],
       "webhookId": "a8d0f9e6-87eb-4578-8ce6-9e6f3fa300ae",
       "alwaysOutputData": true,
       "credentials": {
@@ -197,10 +187,7 @@
       "name": "Log Success2",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [
-        1088,
-        512
-      ]
+      "position": [1088, 512]
     },
     {
       "parameters": {
@@ -210,10 +197,7 @@
       "name": "Log No Action2",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [
-        512,
-        736
-      ]
+      "position": [512, 736]
     },
     {
       "parameters": {
@@ -234,10 +218,7 @@
       },
       "type": "n8n-nodes-base.googleDrive",
       "typeVersion": 3,
-      "position": [
-        -448,
-        832
-      ],
+      "position": [-448, 832],
       "id": "244cd3b3-cbd9-4db7-aff1-932942497b77",
       "name": "Search for blogPreviews snippet1",
       "alwaysOutputData": true,
@@ -256,10 +237,7 @@
       },
       "type": "n8n-nodes-base.googleDrive",
       "typeVersion": 3,
-      "position": [
-        -256,
-        832
-      ],
+      "position": [-256, 832],
       "id": "53443d23-b6f7-4cc2-9cf6-28e9539b86e0",
       "name": "Download preview snippet from Google Drive1",
       "credentials": {
@@ -282,10 +260,7 @@
       "name": "Get GitHub blogPreviews.ts2",
       "type": "n8n-nodes-base.github",
       "typeVersion": 1,
-      "position": [
-        -64,
-        800
-      ],
+      "position": [-64, 800],
       "webhookId": "07b62aa6-12b2-42a0-8be4-25a06e2dedde",
       "credentials": {
         "githubApi": {
@@ -302,10 +277,7 @@
       "name": "Validate Preview Snippet2",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [
-        -64,
-        960
-      ]
+      "position": [-64, 960]
     },
     {
       "parameters": {
@@ -314,7 +286,7 @@
             {
               "value1": "={{ $('Validate Snippet2').item.json.snippet }}",
               "operation": "equals",
-              "value2": "={{ $('Decode GitHub Content2').item.json.githubContent }}"
+              "value2": "={{ $('Extract GitHub Content').item.json.extractedContent }}"
             }
           ]
         }
@@ -327,16 +299,13 @@
     },
     {
       "parameters": {
-        "functionCode": "// Parse existing GitHub content and merge with new preview snippet\nconst existingContent = $('Decode GitHub Previews').item.json.githubContent;\nconst newSnippet = $('Validate Preview Snippet').item.json.snippet;\n\n// Extract blogPreviews array from existing file\nconst existingMatch = existingContent.match(/export const blogPreviews = (\\[.*?\\]);/s);\nconst existingArray = existingMatch ? JSON.parse(existingMatch[1]) : [];\n\n// Extract new blog preview from snippet\nconst snippetMatch = newSnippet.match(/export const newBlogPreview = (\\{.*?\\});/s);\nconst newBlogPreview = snippetMatch ? JSON.parse(snippetMatch[1]) : null;\n\nif (!newBlogPreview) {\n  throw new Error('Invalid snippet format - could not extract newBlogPreview');\n}\n\n// Check for duplicate slug\nconst existingSlugs = existingArray.map(preview => preview.slug);\nif (existingSlugs.includes(newBlogPreview.slug)) {\n  throw new Error(`Blog preview with slug '${newBlogPreview.slug}' already exists`);\n}\n\n// Merge content\nconst mergedArray = [...existingArray, newBlogPreview];\n\n// Generate updated TypeScript file\nconst updatedContent = `export const blogPreviews = ${JSON.stringify(mergedArray, null, 2)};`;\n\nreturn [{ json: { mergedContent: updatedContent, newPreviewCount: mergedArray.length, addedSlug: newBlogPreview.slug } }];"
+        "functionCode": "// Parse existing GitHub content and merge with new preview snippet\nconst existingContent = $('Extract GitHub Content').item.json.extractedContent;\nconst newSnippet = $('Validate Preview Snippet').item.json.snippet;\n\n// Extract blogPreviews array from existing file\nconst existingMatch = existingContent.match(/export const blogPreviews = (\\[.*?\\]);/s);\nconst existingArray = existingMatch ? JSON.parse(existingMatch[1]) : [];\n\n// Extract new blog preview from snippet\nconst snippetMatch = newSnippet.match(/export const newBlogPreview = (\\{.*?\\});/s);\nconst newBlogPreview = snippetMatch ? JSON.parse(snippetMatch[1]) : null;\n\nif (!newBlogPreview) {\n  throw new Error('Invalid snippet format - could not extract newBlogPreview');\n}\n\n// Check for duplicate slug\nconst existingSlugs = existingArray.map(preview => preview.slug);\nif (existingSlugs.includes(newBlogPreview.slug)) {\n  throw new Error(`Blog preview with slug '${newBlogPreview.slug}' already exists`);\n}\n\n// Merge content\nconst mergedArray = [...existingArray, newBlogPreview];\n\n// Generate updated TypeScript file\nconst updatedContent = `export const blogPreviews = ${JSON.stringify(mergedArray, null, 2)};`;\n\nreturn [{ json: { mergedContent: updatedContent, newPreviewCount: mergedArray.length, addedSlug: newBlogPreview.slug } }];"
       },
       "id": "6f7ceec8-cb96-456f-85fa-8f6ddd87e5e9",
       "name": "Merge Preview Content2",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [
-        512,
-        928
-      ]
+      "position": [512, 928]
     },
     {
       "parameters": {
@@ -346,10 +315,7 @@
       "name": "Preview Safety Check2",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [
-        704,
-        928
-      ]
+      "position": [704, 928]
     },
     {
       "parameters": {
@@ -365,10 +331,7 @@
       "name": "Update GitHub with Merged Preview2",
       "type": "n8n-nodes-base.github",
       "typeVersion": 1,
-      "position": [
-        896,
-        928
-      ],
+      "position": [896, 928],
       "webhookId": "45d18e49-4ac4-471b-af2e-7eec33da7075",
       "credentials": {
         "githubApi": {
@@ -385,10 +348,7 @@
       "name": "Log Preview Success2",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [
-        1088,
-        928
-      ]
+      "position": [1088, 928]
     },
     {
       "parameters": {
@@ -398,10 +358,7 @@
       "name": "Log Preview No Action2",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [
-        512,
-        1152
-      ]
+      "position": [512, 1152]
     },
     {
       "parameters": {
@@ -420,10 +377,7 @@
       "name": "Set commit date2",
       "type": "n8n-nodes-base.set",
       "typeVersion": 2,
-      "position": [
-        -656,
-        752
-      ]
+      "position": [-656, 752]
     },
     {
       "parameters": {
@@ -433,10 +387,7 @@
       "name": "Set date1",
       "type": "n8n-nodes-base.dateTime",
       "typeVersion": 2,
-      "position": [
-        -1088,
-        752
-      ]
+      "position": [-1088, 752]
     },
     {
       "parameters": {
@@ -450,10 +401,7 @@
       "name": "Format date2",
       "type": "n8n-nodes-base.dateTime",
       "typeVersion": 2,
-      "position": [
-        -880,
-        752
-      ]
+      "position": [-880, 752]
     },
     {
       "parameters": {
@@ -463,10 +411,7 @@
       "name": "Decode GitHub Content3",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [
-        128,
-        816
-      ]
+      "position": [128, 816]
     }
   ],
   "connections": {
@@ -508,40 +453,40 @@
         ]
       ]
     },
-    "Get GitHub blogPostContent.ts2": {
-      "main": [
-        [
-          {
-            "node": "Decode GitHub Content2",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Decode GitHub Content2": {
-      "main": [
-        [
-          {
-            "node": "Compare Content2",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Validate Snippet2": {
       "main": [
         [
           {
-            "node": "Compare Content2",
+            "node": "Compare Content Python",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Compare Content2": {
+    "Get GitHub blogPostContent.ts2": {
+      "main": [
+        [
+          {
+            "node": "Extract GitHub Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract GitHub Content": {
+      "main": [
+        [
+          {
+            "node": "Compare Content Python",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compare Content Python": {
       "main": [
         [
           {
