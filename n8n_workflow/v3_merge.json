@@ -29,7 +29,7 @@
     {
       "parameters": {
         "resource": "fileFolder",
-        "queryString": "post",
+        "queryString": "auto",
         "returnAll": true,
         "filter": {
           "folderId": {
@@ -72,7 +72,7 @@
       "type": "n8n-nodes-base.googleDrive",
       "typeVersion": 3,
       "position": [
-        -256,
+        -272,
         624
       ],
       "id": "c0ac6cc3-0246-443f-996f-ef851b38d55b",
@@ -125,7 +125,7 @@
     },
     {
       "parameters": {
-        "functionCode": "// Validate snippet format\nconst snippet = Buffer.from($input.first().json.data, 'base64').toString('utf8');\nif (!snippet.includes('export const newBlogPost')) {\n  throw new Error('Snippet must contain \"export const newBlogPost\"');\n}\n\n// Check for required fields\nconst requiredFields = ['slug', 'title', 'date', 'content'];\nconst missingFields = requiredFields.filter(field => !snippet.includes(field));\n\nif (missingFields.length > 0) {\n  throw new Error(`Missing required fields: ${missingFields.join(', ')}`);\n}\n\nreturn [{ json: { validSnippet: true, snippet, fileName: 'blogPostContent-snippet' } }];"
+        "functionCode": "// Extract and format snippet from downloaded file\nconst snippet = Buffer.from($input.first().json.data, 'base64').toString('utf8');\n\n// Function to convert raw object to proper TypeScript export\nfunction formatSnippetToExport(rawContent) {\n  // Remove any trailing semicolon and whitespace\n  let cleaned = rawContent.trim().replace(/;\\s*$/, '');\n  \n  // If it's already an export statement, return as is\n  if (cleaned.includes('export const newBlogPost')) {\n    return cleaned;\n  }\n  \n  // If it's a raw object, wrap it in export statement\n  if (cleaned.startsWith('{') && cleaned.endsWith('}')) {\n    // Add quotes to property names if missing (convert to valid JSON)\n    let jsonString = cleaned\n      .replace(/(\\w+):/g, '\"$1\":') // Add quotes to property names\n      .replace(/,\\s*}/g, '}') // Remove trailing commas\n      .replace(/,\\s*]/g, ']'); // Remove trailing commas in arrays\n    \n    try {\n      // Validate JSON structure\n      JSON.parse(jsonString);\n      return `export const newBlogPost = ${cleaned};`;\n    } catch (error) {\n      throw new Error(`Invalid object format: ${error.message}`);\n    }\n  }\n  \n  throw new Error('File must contain either a raw object or export const newBlogPost statement');\n}\n\n// Function to validate BlogPostContent structure according to type definition\nfunction validateBlogPostContent(obj) {\n  const errors = [];\n  \n  // Required fields according to BlogPostContent type\n  const requiredFields = {\n    slug: 'string',\n    title: 'string', \n    date: 'string',\n    authors: 'array',\n    tags: 'array',\n    image: 'string'\n  };\n  \n  // Optional fields\n  const optionalFields = {\n    featured: 'boolean',\n    excerpt: 'string',\n    content: 'string',\n    others: 'string',\n    richContent: 'array',\n    links: 'object'\n  };\n  \n  // Check required fields\n  for (const [field, expectedType] of Object.entries(requiredFields)) {\n    if (!(field in obj)) {\n      errors.push(`Missing required field: ${field}`);\n      continue;\n    }\n    \n    const value = obj[field];\n    if (expectedType === 'string' && typeof value !== 'string') {\n      errors.push(`Field '${field}' must be a string, got ${typeof value}`);\n    } else if (expectedType === 'array' && !Array.isArray(value)) {\n      errors.push(`Field '${field}' must be an array, got ${typeof value}`);\n    }\n  }\n  \n  // Check optional fields if present\n  for (const [field, expectedType] of Object.entries(optionalFields)) {\n    if (field in obj) {\n      const value = obj[field];\n      if (expectedType === 'string' && typeof value !== 'string') {\n        errors.push(`Field '${field}' must be a string, got ${typeof value}`);\n      } else if (expectedType === 'boolean' && typeof value !== 'boolean') {\n        errors.push(`Field '${field}' must be a boolean, got ${typeof value}`);\n      } else if (expectedType === 'array' && !Array.isArray(value)) {\n        errors.push(`Field '${field}' must be an array, got ${typeof value}`);\n      } else if (expectedType === 'object' && typeof value !== 'object' || Array.isArray(value)) {\n        errors.push(`Field '${field}' must be an object, got ${typeof value}`);\n      }\n    }\n  }\n  \n  // Validate specific field constraints\n  if (obj.slug && typeof obj.slug === 'string') {\n    if (obj.slug.trim() === '') {\n      errors.push('Field \'slug\' cannot be empty');\n    }\n    if (!/^[a-z0-9-]+$/.test(obj.slug)) {\n      errors.push('Field \'slug\' must contain only lowercase letters, numbers, and hyphens');\n    }\n  }\n  \n  if (obj.date && typeof obj.date === 'string') {\n    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(obj.date)) {\n      errors.push('Field \'date\' must be in YYYY-MM-DD format');\n    }\n  }\n  \n  if (obj.authors && Array.isArray(obj.authors)) {\n    if (obj.authors.length === 0) {\n      errors.push('Field \'authors\' cannot be empty array');\n    }\n    for (const author of obj.authors) {\n      if (typeof author !== 'string') {\n        errors.push('All authors must be strings');\n        break;\n      }\n    }\n  }\n  \n  if (obj.tags && Array.isArray(obj.tags)) {\n    for (const tag of obj.tags) {\n      if (typeof tag !== 'string') {\n        errors.push('All tags must be strings');\n        break;\n      }\n    }\n  }\n  \n  if (obj.richContent && Array.isArray(obj.richContent)) {\n    for (const block of obj.richContent) {\n      if (typeof block !== 'object' || Array.isArray(block)) {\n        errors.push('All richContent blocks must be objects');\n        break;\n      }\n      if (!block.type || !['text', 'image', 'quote', 'subheading'].includes(block.type)) {\n        errors.push('Each richContent block must have a valid type (text, image, quote, subheading)');\n        break;\n      }\n      if (!block.content || typeof block.content !== 'string') {\n        errors.push('Each richContent block must have a content string');\n        break;\n      }\n    }\n  }\n  \n  return errors;\n}\n\n// Format the snippet\nconst formattedSnippet = formatSnippetToExport(snippet);\n\n// Extract the object from the formatted snippet\nconst objectMatch = formattedSnippet.match(/export const newBlogPost\\s*=\\s*(\\{.*?\\});/s);\nif (!objectMatch) {\n  throw new Error('Could not extract object from formatted snippet');\n}\n\n// Parse the object for validation\nlet blogPostObject;\ntry {\n  // Convert to valid JSON for parsing\n  const jsonString = objectMatch[1]\n    .replace(/(\\w+):/g, '\"$1\":') // Add quotes to property names\n    .replace(/,\\s*}/g, '}') // Remove trailing commas\n    .replace(/,\\s*]/g, ']'); // Remove trailing commas in arrays\n  \n  blogPostObject = JSON.parse(jsonString);\n} catch (error) {\n  throw new Error(`Failed to parse blog post object: ${error.message}`);\n}\n\n// Validate the object structure\nconst validationErrors = validateBlogPostContent(blogPostObject);\nif (validationErrors.length > 0) {\n  throw new Error(`Validation errors:\\n${validationErrors.join('\\n')}`);\n}\n\nreturn [{ json: { \n  validSnippet: true, \n  snippet: formattedSnippet, \n  originalSnippet: snippet,\n  fileName: 'blogPostContent-snippet',\n  validatedObject: blogPostObject\n} }];"
       },
       "id": "75fad90c-e4db-46c6-9ba0-cbb06c4fe360",
       "name": "Validate Snippet2",
@@ -218,7 +218,7 @@
     {
       "parameters": {
         "resource": "fileFolder",
-        "queryString": "preview",
+        "queryString": "auto",
         "returnAll": true,
         "filter": {
           "folderId": {
@@ -312,21 +312,18 @@
         "conditions": {
           "string": [
             {
-              "value1": "={{ $('Validate Preview Snippet2').item.json.snippet }}",
+              "value1": "={{ $('Validate Snippet2').item.json.snippet }}",
               "operation": "equals",
-              "value2": "={{ $('Decode GitHub Previews2').item.json.githubContent }}"
+              "value2": "={{ $('Decode GitHub Content2').item.json.githubContent }}"
             }
           ]
         }
       },
-      "id": "def2ca14-30f8-4142-b983-5c43364a4c9a",
-      "name": "Compare Preview Content2",
+      "id": "5e25313b-5348-4ac8-ae9e-2efd38f09d24",
+      "name": "Compare Content2",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
-      "position": [
-        320,
-        832
-      ]
+      "position": [320, 624]
     },
     {
       "parameters": {
@@ -467,7 +464,7 @@
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
       "position": [
-        112,
+        128,
         816
       ]
     }
@@ -526,7 +523,7 @@
       "main": [
         [
           {
-            "node": "Merge Content2",
+            "node": "Compare Content2",
             "type": "main",
             "index": 0
           }
@@ -537,7 +534,25 @@
       "main": [
         [
           {
+            "node": "Compare Content2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compare Content2": {
+      "main": [
+        [
+          {
             "node": "Merge Content2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log No Action2",
             "type": "main",
             "index": 0
           }
@@ -608,7 +623,7 @@
       "main": [
         [
           {
-            "node": "Compare Preview Content2",
+            "node": "Decode GitHub Content3",
             "type": "main",
             "index": 0
           }
@@ -709,6 +724,17 @@
         [
           {
             "node": "Set commit date2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Decode GitHub Content3": {
+      "main": [
+        [
+          {
+            "node": "Compare Preview Content2",
             "type": "main",
             "index": 0
           }
