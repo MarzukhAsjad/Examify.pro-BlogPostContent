@@ -1,0 +1,50 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "model": "claude-sonnet-4-20250514-thinking",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You are a TypeScript expert. Convert Google Doc content to BlogPreview objects. Return only valid JSON."
+          },
+          {
+            "role": "user",
+            "content": "Convert this Google Doc content to a BlogPreview object:\n\n{{$json.content}}\n\nRequirements:\n- Extract title, slug, date, excerpt\n- Generate URL-friendly slug from title\n- Format date as YYYY-MM-DD\n- Create compelling excerpt (max 200 chars)\n- Extract relevant tags\n- Return ONLY the JSON object\n\nStructure:\n{\n  slug: string,\n  title: string,\n  date: string,\n  excerpt: string,\n  image?: string,\n  tags?: string[]\n}"
+          }
+        ],
+        "options": {
+          "temperature": 0.3,
+          "maxTokens": 2000
+        },
+        "requestOptions": {
+          "baseURL": "https://chat.cloudapi.vip/v1",
+          "timeout": 60000
+        }
+      },
+      "id": "8e1b1b6e-f580-46a9-9a90-6ce83b35f99c",
+      "name": "AI Preview Converter",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [-1264, 4560],
+      "alwaysOutputData": true,
+      "retryOnFail": true,
+      "credentials": {
+        "openAiApi": {
+          "id": "eNGJLCXnXPdq4Mvp",
+          "name": "OpenAi account 5"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "AI Preview Converter": {
+      "main": [[]]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7efb57ee463638d3638e3e4571358ef61feadec8ab43d6c81603ac733931cb3a"
+  }
+}

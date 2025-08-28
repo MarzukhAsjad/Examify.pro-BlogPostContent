@@ -4,19 +4,77 @@
       "parameters": {},
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
-      "position": [-2592, 2112],
+      "position": [
+        -2448,
+        2736
+      ],
       "id": "b566acec-f74e-4c23-abfe-5cec3eb61ef9",
-      "name": "When clicking 'Execute workflow'"
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "command": "python3 ./compare_node/extract_github_content.py blogPreviews \"{{ $json.content }}\""
+      },
+      "id": "db5a9640-eeab-4d41-b132-7ef978ab4f21",
+      "name": "Extract GitHub Previews",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -848,
+        2784
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Parse JSON output from Extract GitHub Previews\nconst stdout = $input.first().json.stdout;\n\ntry {\n  const result = JSON.parse(stdout);\n  \n  if (result.error) {\n    throw new Error(result.error);\n  }\n  \n  return [{ json: { \n    githubContent: result.rawContent,\n    extractedContent: result.blogPreviews,\n    fileName: 'blogPreviews.ts'\n  } }];\n} catch (error) {\n  throw new Error(`Failed to parse GitHub previews: ${error.message}`);\n}"
+      },
+      "id": "79516bf1-d8fc-4df3-af66-7b05219c4e25",
+      "name": "Parse GitHub Previews",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        -656,
+        2784
+      ]
+    },
+    {
+      "parameters": {
+        "command": "python3 ./compare_node/compare_content.py blogPreviews \"{{ $('Parse GitHub Previews').item.json.githubContent }}\" \"{{ $('Validate Preview Snippet2').item.json.snippet }}\""
+      },
+      "id": "9ed5a1d7-70f8-473e-bc4c-f5021e472fe6",
+      "name": "Compare Previews Python",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -464,
+        2912
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Parse JSON output from Compare Previews Python\nconst stdout = $input.first().json.stdout;\n\ntry {\n  const result = JSON.parse(stdout);\n  \n  if (result.error) {\n    throw new Error(result.error);\n  }\n  \n  return [{ json: { \n    hasChanges: result.hasChanges,\n    existingCount: result.existingCount,\n    newCount: result.newCount,\n    newPreview: result.newPreview,\n    mergedContent: result.mergedContent,\n    message: result.message || null,\n    error: result.error || null\n  } }];\n} catch (error) {\n  throw new Error(`Failed to parse preview compare result: ${error.message}`);\n}"
+      },
+      "id": "2ae1b41b-e72d-41db-a9c2-f15971ea9596",
+      "name": "Parse Preview Result",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        -272,
+        2912
+      ]
     },
     {
       "parameters": {
         "options": {}
       },
-      "id": "dc7f895b-c9ab-48f7-add0-fbb7e3a7d5e5",
-      "name": "Set date1",
+      "id": "99982c4e-279a-453e-ad72-9ed7cca7c51c",
+      "name": "Set date2",
       "type": "n8n-nodes-base.dateTime",
       "typeVersion": 2,
-      "position": [-2112, 1680]
+      "position": [
+        -2064,
+        2736
+      ]
     },
     {
       "parameters": {
@@ -26,11 +84,14 @@
         "customFormat": "dd-MM-yyyy/H:mm",
         "options": {}
       },
-      "id": "6170d1c4-ec16-4a84-b28a-d40ae5f24a04",
-      "name": "Format date2",
+      "id": "eeb3b32d-3a0e-4986-ab8f-0a3ac2156f4d",
+      "name": "Format date3",
       "type": "n8n-nodes-base.dateTime",
       "typeVersion": 2,
-      "position": [-1904, 1680]
+      "position": [
+        -1856,
+        2736
+      ]
     },
     {
       "parameters": {
@@ -45,11 +106,14 @@
         },
         "options": {}
       },
-      "id": "581aadc8-914f-4327-89d1-dd4c3e99a9ba",
-      "name": "Set commit date2",
+      "id": "a7b7706e-2890-488d-91da-35df9343827a",
+      "name": "Set commit date3",
       "type": "n8n-nodes-base.set",
       "typeVersion": 2,
-      "position": [-1680, 1680]
+      "position": [
+        -1632,
+        2736
+      ]
     },
     {
       "parameters": {
@@ -70,9 +134,12 @@
       },
       "type": "n8n-nodes-base.googleDrive",
       "typeVersion": 3,
-      "position": [-1472, 1552],
-      "id": "d3294d3c-0724-4e7d-8b51-ddf76c28e5d4",
-      "name": "Search for blogPostContent snippet1",
+      "position": [
+        -1424,
+        2608
+      ],
+      "id": "91056bda-3199-4214-8958-24e4ce76a373",
+      "name": "Search for blogPostContent snippet2",
       "alwaysOutputData": true,
       "credentials": {
         "googleDriveOAuth2Api": {
@@ -93,9 +160,12 @@
       },
       "type": "n8n-nodes-base.googleDrive",
       "typeVersion": 3,
-      "position": [-1296, 1552],
-      "id": "c0ac6cc3-0246-443f-996f-ef851b38d55b",
-      "name": "Download snippet from Google Drive1",
+      "position": [
+        -1248,
+        2608
+      ],
+      "id": "fa55b0c7-3e3a-40ee-bfe2-52ecc1caeeb0",
+      "name": "Download snippet from Google Drive2",
       "alwaysOutputData": true,
       "credentials": {
         "googleDriveOAuth2Api": {
@@ -113,11 +183,14 @@
         "filePath": "data/blogPostContent.ts",
         "additionalParameters": {}
       },
-      "id": "626af807-33a1-436c-915b-b561dd168cfc",
-      "name": "Get GitHub blogPostContent.ts2",
+      "id": "cfb6484c-0d76-4ca1-b87f-c5e11b28aad0",
+      "name": "Get GitHub blogPostContent.ts3",
       "type": "n8n-nodes-base.github",
       "typeVersion": 1,
-      "position": [-1088, 1568],
+      "position": [
+        -1040,
+        2624
+      ],
       "webhookId": "73e2fcde-3956-43c7-aca9-f7237fd4ff11",
       "credentials": {
         "githubApi": {
@@ -130,73 +203,92 @@
       "parameters": {
         "functionCode": "// Extract snippet from downloaded file\nconst snippet = Buffer.from($input.first().json.data, 'base64').toString('utf8');\n\n// Basic validation - check if it contains required elements\nif (!snippet.includes('slug') || !snippet.includes('title') || !snippet.includes('date')) {\n  throw new Error('Snippet must contain slug, title, and date fields');\n}\n\n// Check if it's a blog post snippet\nif (snippet.includes('newBlogPost') || snippet.includes('content') || snippet.includes('richContent')) {\n  return [{ json: { \n    validSnippet: true, \n    snippet: snippet,\n    originalSnippet: snippet,\n    fileName: 'blogPostContent-snippet',\n    snippetType: 'blogPost'\n  } }];\n}\n\n// Check if it's a blog preview snippet\nif (snippet.includes('newBlogPreview') || snippet.includes('excerpt')) {\n  return [{ json: { \n    validSnippet: true, \n    snippet: snippet,\n    originalSnippet: snippet,\n    fileName: 'blogPreviews-snippet',\n    snippetType: 'blogPreview'\n  } }];\n}\n\nthrow new Error('Snippet must be either a blog post or blog preview format');"
       },
-      "id": "75fad90c-e4db-46c6-9ba0-cbb06c4fe360",
-      "name": "Validate Snippet2",
+      "id": "cbf206a4-9c01-4ee1-ae08-c883d0b0392f",
+      "name": "Validate Snippet3",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [-1088, 1424]
+      "position": [
+        -1040,
+        2480
+      ]
     },
     {
       "parameters": {
-        "command": "python3 ./compare_node/extract_github_content.py blogPostContent \"{{ $json.content }}\"",
-        "options": {}
+        "command": "python3 ./compare_node/extract_github_content.py blogPostContent \"{{ $json.content }}\""
       },
-      "id": "extract-github-content",
-      "name": "Extract GitHub Content",
+      "id": "63373b46-4852-43b5-90b1-7658e54d68ab",
+      "name": "Extract GitHub Content1",
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
-      "position": [-896, 1568]
+      "position": [
+        -848,
+        2624
+      ]
     },
     {
       "parameters": {
         "functionCode": "// Parse JSON output from Extract GitHub Content\nconst stdout = $input.first().json.stdout;\n\ntry {\n  const result = JSON.parse(stdout);\n  \n  if (result.error) {\n    throw new Error(result.error);\n  }\n  \n  return [{ json: { \n    githubContent: result.rawContent,\n    extractedContent: result.blogPostContent,\n    fileName: 'blogPostContent.ts'\n  } }];\n} catch (error) {\n  throw new Error(`Failed to parse GitHub content: ${error.message}`);\n}"
       },
-      "id": "parse-github-content",
-      "name": "Parse GitHub Content",
+      "id": "a7897972-e909-4d6d-b7e0-cd090c92599d",
+      "name": "Parse GitHub Content1",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [-704, 1568]
+      "position": [
+        -656,
+        2624
+      ]
     },
     {
       "parameters": {
-        "command": "python3 ./compare_node/compare_content.py blogPostContent \"{{ $('Parse GitHub Content').item.json.githubContent }}\" \"{{ $('Validate Snippet2').item.json.snippet }}\"",
-        "options": {}
+        "command": "python3 ./compare_node/compare_content.py blogPostContent \"{{ $('Parse GitHub Content').item.json.githubContent }}\" \"{{ $('Validate Snippet2').item.json.snippet }}\""
       },
-      "id": "compare-content-python",
-      "name": "Compare Content Python",
+      "id": "9caea8dc-f7bc-4f52-a65d-d99afe3e2112",
+      "name": "Compare Content Python1",
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
-      "position": [-512, 1440]
+      "position": [
+        -464,
+        2496
+      ]
     },
     {
       "parameters": {
         "functionCode": "// Parse JSON output from Compare Content Python\nconst stdout = $input.first().json.stdout;\n\ntry {\n  const result = JSON.parse(stdout);\n  \n  if (result.error) {\n    throw new Error(result.error);\n  }\n  \n  return [{ json: { \n    hasChanges: result.hasChanges,\n    existingCount: result.existingCount,\n    newCount: result.newCount,\n    newPost: result.newPost,\n    mergedContent: result.mergedContent,\n    message: result.message || null,\n    error: result.error || null\n  } }];\n} catch (error) {\n  throw new Error(`Failed to parse compare result: ${error.message}`);\n}"
       },
-      "id": "parse-compare-result",
-      "name": "Parse Compare Result",
+      "id": "9c0568bf-09fe-4207-8cd3-a18670de39fd",
+      "name": "Parse Compare Result1",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [-320, 1440]
+      "position": [
+        -272,
+        2496
+      ]
     },
     {
       "parameters": {
         "functionCode": "// Generate updated TypeScript file from merged content\nconst mergedContent = $input.first().json.mergedContent;\nconst newPost = $input.first().json.newPost;\n\n// Generate updated TypeScript file\nconst updatedContent = `export const blogPostContent = ${JSON.stringify(mergedContent, null, 2)};`;\n\nreturn [{ json: { \n  mergedContent: updatedContent, \n  newPostCount: mergedContent.length, \n  addedSlug: newPost.slug \n} }];"
       },
-      "id": "d458b0cd-b4e3-4066-bff5-26c74acd3e75",
-      "name": "Merge Content2",
+      "id": "8f03b4d8-04f2-4dbd-a189-47f8d3c6f5f5",
+      "name": "Merge Content3",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [-128, 1440]
+      "position": [
+        -80,
+        2496
+      ]
     },
     {
       "parameters": {
         "functionCode": "// Check for potential issues in merged content\nconst mergedContent = $input.first().json.mergedContent;\n\n// Validate TypeScript syntax\nif (!mergedContent.includes('export const blogPostContent')) {\n  throw new Error('Merged content missing required export statement');\n}\n\n// Check for valid JSON structure\ntry {\n  const contentMatch = mergedContent.match(/export const blogPostContent = (\\[.*?\\]);/s);\n  if (contentMatch) {\n    JSON.parse(contentMatch[1]);\n  }\n} catch (error) {\n  throw new Error('Invalid JSON structure in merged content');\n}\n\nreturn [{ json: { safeContent: true, contentLength: mergedContent.length } }];"
       },
-      "id": "84bf2676-a3e7-41ee-b65d-3aaaa45d0e41",
-      "name": "Content Safety Check2",
+      "id": "9443442c-22a6-4564-ab9a-b69589829cfe",
+      "name": "Content Safety Check3",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [64, 1440]
+      "position": [
+        112,
+        2496
+      ]
     },
     {
       "parameters": {
@@ -205,14 +297,17 @@
         "owner": "chefmatteo",
         "repository": "Examify.pro-BlogPostContent",
         "filePath": "data/blogPostContent.ts",
-        "fileContent": "={{ $('Merge Content2').item.json.mergedContent }}",
+        "fileContent": "={{ $('Merge Content3').item.json.mergedContent }}",
         "commitMessage": "Auto-merge new blog post from Google Drive snippet: {{ $json.commitDate }}"
       },
-      "id": "567f45d6-981a-4a6d-a963-252c70fe8575",
-      "name": "Update GitHub with Merged Content2",
+      "id": "219b5dff-bf1d-4d60-8436-7431310c5098",
+      "name": "Update GitHub with Merged Content3",
       "type": "n8n-nodes-base.github",
       "typeVersion": 1,
-      "position": [256, 1440],
+      "position": [
+        304,
+        2496
+      ],
       "webhookId": "a8d0f9e6-87eb-4578-8ce6-9e6f3fa300ae",
       "alwaysOutputData": true,
       "credentials": {
@@ -226,21 +321,14 @@
       "parameters": {
         "functionCode": "// Log successful merge\nconst addedSlug = $('Merge Content2').item.json.addedSlug;\nconst newPostCount = $('Merge Content2').item.json.newPostCount;\n\nreturn [{ json: { \n  message: `Successfully merged new blog post: ${addedSlug}`,\n  totalPosts: newPostCount,\n  timestamp: new Date().toISOString(),\n  action: 'merge_success'\n} }];"
       },
-      "id": "180a06f2-7389-48a6-b0b6-60a438a6ac0b",
-      "name": "Log Success2",
+      "id": "a0e947da-ebf4-4689-845e-00e6251db3b8",
+      "name": "Log Success3",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [448, 1440]
-    },
-    {
-      "parameters": {
-        "functionCode": "// Log no action needed\nreturn [{ json: { \n  message: 'Content is identical - no update needed',\n  timestamp: new Date().toISOString(),\n  action: 'no_action'\n} }];"
-      },
-      "id": "c85673c6-7ff2-47bf-a22e-c51f2a517429",
-      "name": "Log No Action2",
-      "type": "n8n-nodes-base.function",
-      "typeVersion": 1,
-      "position": [-320, 1664]
+      "position": [
+        496,
+        2496
+      ]
     },
     {
       "parameters": {
@@ -261,9 +349,12 @@
       },
       "type": "n8n-nodes-base.googleDrive",
       "typeVersion": 3,
-      "position": [-1472, 1760],
-      "id": "244cd3b3-cbd9-4db7-aff1-932942497b77",
-      "name": "Search for blogPreviews snippet1",
+      "position": [
+        -1424,
+        2816
+      ],
+      "id": "e4b9b8d8-d61e-40f2-b13b-c21cf4313a69",
+      "name": "Search for blogPreviews snippet2",
       "alwaysOutputData": true,
       "credentials": {
         "googleDriveOAuth2Api": {
@@ -280,9 +371,12 @@
       },
       "type": "n8n-nodes-base.googleDrive",
       "typeVersion": 3,
-      "position": [-1280, 1760],
-      "id": "53443d23-b6f7-4cc2-9cf6-28e9539b86e0",
-      "name": "Download preview snippet from Google Drive1",
+      "position": [
+        -1232,
+        2816
+      ],
+      "id": "2243aaad-7dee-45d1-8664-e09219cd4c34",
+      "name": "Download preview snippet from Google Drive2",
       "credentials": {
         "googleDriveOAuth2Api": {
           "id": "2vg1fSo8hu2qFmjI",
@@ -299,11 +393,14 @@
         "filePath": "data/blogPreviews.ts",
         "additionalParameters": {}
       },
-      "id": "cae376bc-2e64-46cf-9be1-8090ddc7c887",
-      "name": "Get GitHub blogPreviews.ts2",
+      "id": "27825c4f-a29d-4578-9c56-b5f1ecebfda6",
+      "name": "Get GitHub blogPreviews.ts3",
       "type": "n8n-nodes-base.github",
       "typeVersion": 1,
-      "position": [-1088, 1728],
+      "position": [
+        -1040,
+        2784
+      ],
       "webhookId": "07b62aa6-12b2-42a0-8be4-25a06e2dedde",
       "credentials": {
         "githubApi": {
@@ -316,73 +413,40 @@
       "parameters": {
         "functionCode": "// Validate preview snippet format\nconst snippet = Buffer.from($input.first().json.data, 'base64').toString('utf8');\n\n// Check for required export\nif (!snippet.includes('export const newBlogPreview')) {\n  throw new Error('Preview snippet must contain \"export const newBlogPreview\"');\n}\n\n// Check for required fields\nconst requiredFields = ['slug', 'title', 'date', 'excerpt'];\nconst missingFields = requiredFields.filter(field => !snippet.includes(field));\n\nif (missingFields.length > 0) {\n  throw new Error(`Missing required fields: ${missingFields.join(', ')}`);\n}\n\nreturn [{ json: { validSnippet: true, snippet, fileName: 'blogPreviews-snippet' } }];"
       },
-      "id": "d1a0ea12-3225-4bfa-b5a3-bb0505989e65",
-      "name": "Validate Preview Snippet2",
+      "id": "2107461a-869a-4cba-b46f-7b2a174b9d5d",
+      "name": "Validate Preview Snippet3",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [-1088, 1888]
-    },
-    {
-      "parameters": {
-        "command": "python3 ./compare_node/extract_github_content.py blogPreviews \"{{ $json.content }}\"",
-        "options": {}
-      },
-      "id": "extract-github-previews",
-      "name": "Extract GitHub Previews",
-      "type": "n8n-nodes-base.executeCommand",
-      "typeVersion": 1,
-      "position": [-896, 1728]
-    },
-    {
-      "parameters": {
-        "functionCode": "// Parse JSON output from Extract GitHub Previews\nconst stdout = $input.first().json.stdout;\n\ntry {\n  const result = JSON.parse(stdout);\n  \n  if (result.error) {\n    throw new Error(result.error);\n  }\n  \n  return [{ json: { \n    githubContent: result.rawContent,\n    extractedContent: result.blogPreviews,\n    fileName: 'blogPreviews.ts'\n  } }];\n} catch (error) {\n  throw new Error(`Failed to parse GitHub previews: ${error.message}`);\n}"
-      },
-      "id": "parse-github-previews",
-      "name": "Parse GitHub Previews",
-      "type": "n8n-nodes-base.function",
-      "typeVersion": 1,
-      "position": [-704, 1728]
-    },
-    {
-      "parameters": {
-        "command": "python3 ./compare_node/compare_content.py blogPreviews \"{{ $('Parse GitHub Previews').item.json.githubContent }}\" \"{{ $('Validate Preview Snippet2').item.json.snippet }}\"",
-        "options": {}
-      },
-      "id": "compare-previews-python",
-      "name": "Compare Previews Python",
-      "type": "n8n-nodes-base.executeCommand",
-      "typeVersion": 1,
-      "position": [-512, 1856]
-    },
-    {
-      "parameters": {
-        "functionCode": "// Parse JSON output from Compare Previews Python\nconst stdout = $input.first().json.stdout;\n\ntry {\n  const result = JSON.parse(stdout);\n  \n  if (result.error) {\n    throw new Error(result.error);\n  }\n  \n  return [{ json: { \n    hasChanges: result.hasChanges,\n    existingCount: result.existingCount,\n    newCount: result.newCount,\n    newPreview: result.newPreview,\n    mergedContent: result.mergedContent,\n    message: result.message || null,\n    error: result.error || null\n  } }];\n} catch (error) {\n  throw new Error(`Failed to parse preview compare result: ${error.message}`);\n}"
-      },
-      "id": "parse-preview-result",
-      "name": "Parse Preview Result",
-      "type": "n8n-nodes-base.function",
-      "typeVersion": 1,
-      "position": [-320, 1856]
+      "position": [
+        -1040,
+        2944
+      ]
     },
     {
       "parameters": {
         "functionCode": "// Generate updated TypeScript file from merged preview content\nconst mergedContent = $input.first().json.mergedContent;\nconst newPreview = $input.first().json.newPreview;\n\n// Generate updated TypeScript file\nconst updatedContent = `export const blogPreviews = ${JSON.stringify(mergedContent, null, 2)};`;\n\nreturn [{ json: { \n  mergedContent: updatedContent, \n  newPreviewCount: mergedContent.length, \n  addedSlug: newPreview.slug \n} }];"
       },
-      "id": "6f7ceec8-cb96-456f-85fa-8f6ddd87e5e9",
-      "name": "Merge Preview Content2",
+      "id": "272e6159-43da-412f-9f17-c7fbd701c91b",
+      "name": "Merge Preview Content3",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [-128, 1856]
+      "position": [
+        -80,
+        2912
+      ]
     },
     {
       "parameters": {
         "functionCode": "// Check for potential issues in merged preview content\nconst mergedContent = $input.first().json.mergedContent;\n\n// Validate TypeScript syntax\nif (!mergedContent.includes('export const blogPreviews')) {\n  throw new Error('Merged preview content missing required export statement');\n}\n\n// Check for valid JSON structure\ntry {\n  const contentMatch = mergedContent.match(/export const blogPreviews = (\\[.*?\\]);/s);\n  if (contentMatch) {\n    JSON.parse(contentMatch[1]);\n  }\n} catch (error) {\n  throw new Error('Invalid JSON structure in merged preview content');\n}\n\nreturn [{ json: { safeContent: true, contentLength: mergedContent.length } }];"
       },
-      "id": "544e5c9d-4335-401e-b72f-2ca4add44752",
-      "name": "Preview Safety Check2",
+      "id": "ac23e7d0-d066-4b78-b48a-338d24014dae",
+      "name": "Preview Safety Check3",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [64, 1856]
+      "position": [
+        112,
+        2912
+      ]
     },
     {
       "parameters": {
@@ -391,14 +455,17 @@
         "owner": "chefmatteo",
         "repository": "Examify.pro-BlogPostContent",
         "filePath": "data/blogPreviews.ts",
-        "fileContent": "={{ $('Merge Preview Content2').item.json.mergedContent }}",
+        "fileContent": "={{ $('Merge Preview Content3').item.json.mergedContent }}",
         "commitMessage": "Auto-merge new blog preview from Google Drive snippet: {{ $json.commitDate }}"
       },
-      "id": "ad710d33-e6a9-4eb3-9202-5ba6abf80b19",
-      "name": "Update GitHub with Merged Preview2",
+      "id": "24edf5b2-951d-4e7c-9a38-6458af1e0ce6",
+      "name": "Update GitHub with Merged Preview3",
       "type": "n8n-nodes-base.github",
       "typeVersion": 1,
-      "position": [256, 1856],
+      "position": [
+        304,
+        2912
+      ],
       "webhookId": "45d18e49-4ac4-471b-af2e-7eec33da7075",
       "credentials": {
         "githubApi": {
@@ -411,238 +478,48 @@
       "parameters": {
         "functionCode": "// Log successful preview merge\nconst addedSlug = $('Merge Preview Content2').item.json.addedSlug;\nconst newPreviewCount = $('Merge Preview Content2').item.json.newPreviewCount;\n\nreturn [{ json: { \n  message: `Successfully merged new blog preview: ${addedSlug}`,\n  totalPreviews: newPreviewCount,\n  timestamp: new Date().toISOString(),\n  action: 'preview_merge_success'\n} }];"
       },
-      "id": "6ca76c5b-7c56-4b91-9ad1-d5308697ea70",
-      "name": "Log Preview Success2",
+      "id": "0615d006-d0f3-45e6-8535-2c40f13020a4",
+      "name": "Log Preview Success3",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [448, 1856]
+      "position": [
+        496,
+        2912
+      ]
     },
     {
       "parameters": {
         "functionCode": "// Log no action needed for preview\nreturn [{ json: { \n  message: 'Preview content is identical - no update needed',\n  timestamp: new Date().toISOString(),\n  action: 'preview_no_action'\n} }];"
       },
-      "id": "66832ba1-ef4d-4563-82f7-7e589519f62a",
-      "name": "Log Preview No Action2",
+      "id": "015e59d7-b156-42b2-a756-bc1b91dfd560",
+      "name": "Log Preview No Action3",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [-320, 2080]
+      "position": [
+        -272,
+        3136
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Log no action needed\nreturn [{ json: { \n  message: 'Content is identical - no update needed',\n  timestamp: new Date().toISOString(),\n  action: 'no_action'\n} }];"
+      },
+      "id": "89752e3d-ed7d-4c93-91e0-06c8b8c439fe",
+      "name": "Log No Content Action",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        -272,
+        2672
+      ]
     }
   ],
   "connections": {
-    "When clicking 'Execute workflow'": {
+    "When clicking ‘Execute workflow’": {
       "main": [
         [
           {
-            "node": "Set date1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Set date1": {
-      "main": [
-        [
-          {
-            "node": "Format date2",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Format date2": {
-      "main": [
-        [
-          {
-            "node": "Set commit date2",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Set commit date2": {
-      "main": [
-        [
-          {
-            "node": "Search for blogPostContent snippet1",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Search for blogPreviews snippet1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Search for blogPostContent snippet1": {
-      "main": [
-        [
-          {
-            "node": "Download snippet from Google Drive1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Download snippet from Google Drive1": {
-      "main": [
-        [
-          {
-            "node": "Validate Snippet2",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Get GitHub blogPostContent.ts2",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get GitHub blogPostContent.ts2": {
-      "main": [
-        [
-          {
-            "node": "Extract GitHub Content",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Extract GitHub Content": {
-      "main": [
-        [
-          {
-            "node": "Parse GitHub Content",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Parse GitHub Content": {
-      "main": [
-        [
-          {
-            "node": "Compare Content Python",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Validate Snippet2": {
-      "main": [
-        [
-          {
-            "node": "Compare Content Python",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Compare Content Python": {
-      "main": [
-        [
-          {
-            "node": "Parse Compare Result",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Parse Compare Result": {
-      "main": [
-        [
-          {
-            "node": "Merge Content2",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Log No Action2",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Merge Content2": {
-      "main": [
-        [
-          {
-            "node": "Content Safety Check2",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Content Safety Check2": {
-      "main": [
-        [
-          {
-            "node": "Update GitHub with Merged Content2",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Update GitHub with Merged Content2": {
-      "main": [
-        [
-          {
-            "node": "Log Success2",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Search for blogPreviews snippet1": {
-      "main": [
-        [
-          {
-            "node": "Download preview snippet from Google Drive1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Download preview snippet from Google Drive1": {
-      "main": [
-        [
-          {
-            "node": "Validate Preview Snippet2",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Get GitHub blogPreviews.ts2",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get GitHub blogPreviews.ts2": {
-      "main": [
-        [
-          {
-            "node": "Extract GitHub Previews",
+            "node": "Set date2",
             "type": "main",
             "index": 0
           }
@@ -671,22 +548,16 @@
         ]
       ]
     },
-    "Validate Preview Snippet2": {
-      "main": [
-        [
-          {
-            "node": "Compare Previews Python",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Compare Previews Python": {
       "main": [
         [
           {
             "node": "Parse Preview Result",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Log Preview No Action3",
             "type": "main",
             "index": 0
           }
@@ -697,47 +568,258 @@
       "main": [
         [
           {
-            "node": "Merge Preview Content2",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Log Preview No Action2",
+            "node": "Merge Preview Content3",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Merge Preview Content2": {
+    "Set date2": {
       "main": [
         [
           {
-            "node": "Preview Safety Check2",
+            "node": "Format date3",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Preview Safety Check2": {
+    "Format date3": {
       "main": [
         [
           {
-            "node": "Update GitHub with Merged Preview2",
+            "node": "Set commit date3",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Update GitHub with Merged Preview2": {
+    "Set commit date3": {
       "main": [
         [
           {
-            "node": "Log Preview Success2",
+            "node": "Search for blogPostContent snippet2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Search for blogPreviews snippet2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search for blogPostContent snippet2": {
+      "main": [
+        [
+          {
+            "node": "Download snippet from Google Drive2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download snippet from Google Drive2": {
+      "main": [
+        [
+          {
+            "node": "Validate Snippet3",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get GitHub blogPostContent.ts3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get GitHub blogPostContent.ts3": {
+      "main": [
+        [
+          {
+            "node": "Extract GitHub Content1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Snippet3": {
+      "main": [
+        [
+          {
+            "node": "Compare Content Python1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract GitHub Content1": {
+      "main": [
+        [
+          {
+            "node": "Parse GitHub Content1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse GitHub Content1": {
+      "main": [
+        [
+          {
+            "node": "Compare Content Python1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compare Content Python1": {
+      "main": [
+        [
+          {
+            "node": "Parse Compare Result1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Log No Content Action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Compare Result1": {
+      "main": [
+        [
+          {
+            "node": "Merge Content3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Content3": {
+      "main": [
+        [
+          {
+            "node": "Content Safety Check3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Content Safety Check3": {
+      "main": [
+        [
+          {
+            "node": "Update GitHub with Merged Content3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update GitHub with Merged Content3": {
+      "main": [
+        [
+          {
+            "node": "Log Success3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search for blogPreviews snippet2": {
+      "main": [
+        [
+          {
+            "node": "Download preview snippet from Google Drive2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download preview snippet from Google Drive2": {
+      "main": [
+        [
+          {
+            "node": "Validate Preview Snippet3",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get GitHub blogPreviews.ts3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get GitHub blogPreviews.ts3": {
+      "main": [
+        [
+          {
+            "node": "Extract GitHub Previews",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Preview Snippet3": {
+      "main": [
+        [
+          {
+            "node": "Compare Previews Python",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Preview Content3": {
+      "main": [
+        [
+          {
+            "node": "Preview Safety Check3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preview Safety Check3": {
+      "main": [
+        [
+          {
+            "node": "Update GitHub with Merged Preview3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update GitHub with Merged Preview3": {
+      "main": [
+        [
+          {
+            "node": "Log Preview Success3",
             "type": "main",
             "index": 0
           }

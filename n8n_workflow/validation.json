@@ -1,0 +1,26 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "options": {
+          "prompt": "Instructions:\n--------------\nYou are an expert TypeScript developer. Convert Google Doc content into a properly formatted TypeScript object.\n\nFor BlogPostContent, return an object with these required fields:\n- slug: string (URL-friendly identifier)\n- title: string (document title)\n- date: string (YYYY-MM-DD format)\n- authors: string[] (default: ['Examify Team'])\n- tags: string[] (default: ['Education'])\n- image: string (default: '/learning.avif')\n- excerpt: string (brief summary, max 200 chars)\n- content: string (full document content)\n- richContent: Array<{type: 'text'|'image'|'quote'|'subheading', content: string, imageUrl?: string, imageCaption?: string, imageAlt?: string, quoteAuthor?: string, className?: string}>\n- links?: {socialMedia?: {}, external?: {}, internal?: {}, position?: 'top'|'middle'|'bottom'|'custom', customPosition?: number}\n- featured?: boolean\n- others?: string\n\nFor BlogPreview, return an object with these required fields:\n- slug: string (URL-friendly identifier)\n- title: string (document title)\n- date: string (YYYY-MM-DD format)\n- authors: string[] (default: ['Examify Team'])\n- tags: string[] (default: ['Education'])\n- image: string (default: '/learning.avif')\n- excerpt: string (brief summary, max 200 chars)\n- featured?: boolean\n\nReturn ONLY the JSON object, no explanations or markdown formatting.\n--------------\nCompletion:\n--------------\n{completion}\n--------------\n\nAbove, the Completion did not satisfy the constraints given in the Instructions.\nError:\n--------------\n{error}\n--------------\n\nPlease try again. Please only respond with an answer that satisfies the constraints laid out in the Instructions:"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserAutofixing",
+      "typeVersion": 1,
+      "position": [-1040, 4448],
+      "id": "e72faa1e-12c7-41af-9fa8-a6b58c3dd63f",
+      "name": "Auto-fixing Output Parser"
+    }
+  ],
+  "connections": {
+    "Auto-fixing Output Parser": {
+      "main": [[]]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7efb57ee463638d3638e3e4571358ef61feadec8ab43d6c81603ac733931cb3a"
+  }
+}

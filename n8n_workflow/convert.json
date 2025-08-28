@@ -1,0 +1,79 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are an expert TypeScript developer specializing in content transformation. Your task is to convert Google Doc content into a properly formatted TypeScript object based on the file type.\n\nFile Classification:\n- Files with 'C_auto' in filename → BlogPostContent format\n- Files with 'P_auto' in filename → BlogPreview format\n\nFor BlogPostContent (C_auto files), extract:\n- slug, title, date, excerpt, content\n- Generate URL-friendly slug from title\n- Format date as YYYY-MM-DD\n- Create compelling excerpt (max 200 chars)\n- Extract relevant tags\n- Create richContent array with structured blocks\n- Include links object structure\n\nFor BlogPreview (P_auto files), extract:\n- slug, title, date, excerpt\n- Generate URL-friendly slug from title\n- Format date as YYYY-MM-DD\n- Create concise excerpt (max 200 chars)\n- Extract relevant tags\n- Focus on essential metadata only\n\nReturn ONLY the TypeScript object in valid JSON format. No explanations or markdown formatting."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [-1344, 4448],
+      "id": "055f22e6-1bbd-47cb-a589-876047b237a6",
+      "name": "AI Convert Agent",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"contentType\": {\n      \"type\": \"string\",\n      \"enum\": [\"blogPost\", \"blogPreview\"],\n      \"description\": \"Type of content being processed (determined by filename)\"\n    },\n    \"fileName\": {\n      \"type\": \"string\",\n      \"description\": \"Original file name\"\n    },\n    \"slug\": {\n      \"type\": \"string\",\n      \"description\": \"URL-friendly identifier\"\n    },\n    \"title\": {\n      \"type\": \"string\",\n      \"description\": \"Document title\"\n    },\n    \"date\": {\n      \"type\": \"string\",\n      \"pattern\": \"^\\\\d{4}-\\\\d{2}-\\\\d{2}$\",\n      \"description\": \"Date in YYYY-MM-DD format\"\n    },\n    \"authors\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      },\n      \"default\": [\"Examify Team\"]\n    },\n    \"tags\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      },\n      \"default\": [\"Education\"]\n    },\n    \"image\": {\n      \"type\": \"string\",\n      \"default\": \"/learning.avif\"\n    },\n    \"excerpt\": {\n      \"type\": \"string\",\n      \"maxLength\": 200,\n      \"description\": \"Brief summary, max 200 characters\"\n    },\n    \"content\": {\n      \"type\": \"string\",\n      \"description\": \"Full document content (required for blogPost)\"\n    },\n    \"richContent\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"type\": {\n            \"type\": \"string\",\n            \"enum\": [\"text\", \"image\", \"quote\", \"subheading\"]\n          },\n          \"content\": {\n            \"type\": \"string\"\n          },\n          \"imageUrl\": {\n            \"type\": \"string\"\n          },\n          \"imageCaption\": {\n            \"type\": \"string\"\n          },\n          \"imageAlt\": {\n            \"type\": \"string\"\n          },\n          \"quoteAuthor\": {\n            \"type\": \"string\"\n          },\n          \"className\": {\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [\"type\", \"content\"]\n      },\n      \"description\": \"Structured content blocks (required for blogPost)\"\n    },\n    \"links\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"socialMedia\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"instagram\": {\"type\": \"string\"},\n            \"threads\": {\"type\": \"string\"},\n            \"twitter\": {\"type\": \"string\"},\n            \"linkedin\": {\"type\": \"string\"},\n            \"facebook\": {\"type\": \"string\"}\n          }\n        },\n        \"external\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"website\": {\"type\": \"string\"},\n            \"article\": {\"type\": \"string\"},\n            \"resource\": {\"type\": \"string\"},\n            \"download\": {\"type\": \"string\"}\n          }\n        },\n        \"internal\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"relatedPost\": {\"type\": \"string\"},\n            \"page\": {\"type\": \"string\"},\n            \"section\": {\"type\": \"string\"}\n          }\n        },\n        \"position\": {\n          \"type\": \"string\",\n          \"enum\": [\"top\", \"middle\", \"bottom\", \"custom\"]\n        },\n        \"customPosition\": {\n          \"type\": \"number\"\n        }\n      },\n      \"description\": \"Links object (optional for blogPost)\"\n    },\n    \"featured\": {\n      \"type\": \"boolean\",\n      \"description\": \"Whether the post is featured\"\n    },\n    \"others\": {\n      \"type\": \"string\",\n      \"description\": \"Additional content (optional for blogPost)\"\n    }\n  },\n  \"required\": [\"contentType\", \"fileName\", \"slug\", \"title\", \"date\", \"authors\", \"tags\", \"image\", \"excerpt\"],\n  \"allOf\": [\n    {\n      \"if\": {\n        \"properties\": {\n          \"contentType\": {\n            \"const\": \"blogPost\"\n          }\n        }\n      },\n      \"then\": {\n        \"required\": [\"content\", \"richContent\"]\n      }\n    }\n  ]\n}",
+        "autoFix": true,
+        "customizeRetryPrompt": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [-1088, 4720],
+      "id": "2091228e-ff59-4519-aefd-26306d4738c1",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "model": "deepseek/deepseek-chat-v3.1",
+        "options": {
+          "responseFormat": "text"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [-1488, 4832],
+      "id": "7744e02a-a828-4d80-b2b6-5bfc61cc880e",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "eqm7uNf7HDW9vTHX",
+          "name": "OpenRouter account 2"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Convert Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Convert Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7efb57ee463638d3638e3e4571358ef61feadec8ab43d6c81603ac733931cb3a"
+  }
+}
