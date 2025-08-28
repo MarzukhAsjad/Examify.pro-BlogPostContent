@@ -6,411 +6,25 @@
       "name": "Execute workflow",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
-      "position": [-1344, 752]
+      "position": [
+        -1344,
+        752
+      ]
     },
     {
       "parameters": {
-        "pollTimes": {
-          "item": [
-            {
-              "mode": "everyHour"
-            }
-          ]
-        },
-        "triggerOn": "specificFolder",
-        "folderToWatch": {
-          "__rl": true,
-          "value": "https://drive.google.com/drive/u/0/folders/1SyTKcZKT-Ht1WVbr2ZYBCSsI_TtpKve3",
-          "mode": "url"
-        },
-        "event": "fileCreated",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.googleDriveTrigger",
-      "typeVersion": 1,
-      "position": [-1200, 2928],
-      "id": "11c6d0d0-4a4e-4136-a11c-2cfe85c0e1e9",
-      "name": "Google Drive Trigger"
-    },
-    {
-      "parameters": {
-        "operation": "download",
-        "fileId": "={{ $json.id }}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.googleDrive",
-      "typeVersion": 3,
-      "position": [-976, 2928],
-      "id": "7ee50542-2942-4241-a2a1-203ac18d6be1",
-      "name": "Download file from Google Drive"
-    },
-    {
-      "parameters": {
-        "rules": {
-          "values": [
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 2
-                },
-                "conditions": [
-                  {
-                    "leftValue": "={{ $('Google Drive Trigger').item.json.name }}",
-                    "rightValue": "Content",
-                    "operator": {
-                      "type": "string",
-                      "operation": "contains"
-                    },
-                    "id": "3e74a48c-bdfd-468e-80ae-6cd2efa97e68"
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "content"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 2
-                },
-                "conditions": [
-                  {
-                    "id": "42c578e4-38d6-451a-a9be-27101cf8c9fd",
-                    "leftValue": "={{ $('Google Drive Trigger').item.json.name }}",
-                    "rightValue": "Preview",
-                    "operator": {
-                      "type": "string",
-                      "operation": "contains"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "preview"
-            }
-          ]
-        },
-        "options": {
-          "fallbackOutput": "extra"
-        }
-      },
-      "type": "n8n-nodes-base.switch",
-      "typeVersion": 3.2,
-      "position": [-384, 2912],
-      "id": "f260dd89-fff1-4507-91ef-4056a65c0805",
-      "name": "Switch"
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://discord.com/api/webhooks/1410105152819429386/R-skMAbCsJKWHPIpCiiXGXEoJJMC4KuPrqVIskKxUE57Rc4qkWwjz9oiNhdIH6VvkOhV",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "{\n  \"embeds\": [\n    {\n      \"title\": \"Blog Content Update\",\n      \"description\": \"{{ $json.message }}\",\n      \"color\": 16711680,\n      \"footer\": {\n        \"text\": \"{{ $json.timestamp }}\"\n      },\n      \"author\": {\n        \"name\": \"N8N Blog Automation\"\n      },\n      \"fields\": [\n        {\n          \"name\": \"Action\",\n          \"value\": \"{{ $json.action }}\",\n          \"inline\": true\n        },\n        {\n          \"name\": \"Total Posts\",\n          \"value\": \"{{ $json.totalPosts || $json.totalPreviews || 'N/A' }}\",\n          \"inline\": true\n        }\n      ]\n    }\n  ]\n}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [1328, 2656],
-      "id": "d6256a9d-87ab-403b-9374-9147bb8511c6",
-      "name": "POST to Discord Webhook"
-    },
-    {
-      "parameters": {
-        "content": "## File naming convention when uploading file to Drive\n\nUpload file to the \"Blogs\" folder in \"Marketing\". Make sure it contains **Content** if it is a content file and **Preview** if it is a preview file\n\n### Expected Snippet Formats:\n\n**Blog Post Content Snippet (Raw Object Format):**\n```typescript\n{\n  slug: 'new-blog-post',           // Required: string, lowercase+hyphens only\n  title: 'New Blog Post Title',    // Required: string\n  date: '2025-01-20',             // Required: string, YYYY-MM-DD format\n  authors: ['Author Name'],        // Required: array of strings\n  tags: ['tag1', 'tag2'],          // Required: array of strings\n  image: '/image.jpg',             // Required: string\n  excerpt: 'Blog post excerpt...', // Optional: string\n  content: 'Blog post content...', // Optional: string\n  featured: true,                  // Optional: boolean\n  richContent: [                   // Optional: array of objects\n    {\n      type: 'text',                // Required: 'text'|'image'|'quote'|'subheading'\n      content: 'Content here'      // Required: string\n    }\n  ]\n}\n```\n\n**Blog Preview Snippet (Raw Object Format):**\n```typescript\n{\n  slug: 'new-blog-post',           // Required: string, lowercase+hyphens only\n  title: 'New Blog Post Title',    // Required: string\n  date: '2025-01-20',             // Required: string, YYYY-MM-DD format\n  authors: ['Author Name'],        // Required: array of strings\n  tags: ['tag1', 'tag2'],          // Required: array of strings\n  image: '/image.jpg',             // Required: string\n  excerpt: 'Blog post excerpt...', // Optional: string\n  featured: true                   // Optional: boolean\n}\n```\n\n**Note:** The workflow validates against exact TypeScript type definitions. All required fields must be present with correct data types.",
+        "content": "## File naming convention when uploading file to Drive\n\nUpload file to the \"Blogs\" folder in \"Marketing\". Make sure it contains **Content** if it is a content file and **Preview** if it is a preview file\n\n### Expected Snippet Formats:\n\n**Blog Post Content Snippet:**\n```typescript\nexport const newBlogPost: BlogPostContent = {\n  slug: 'new-blog-post',\n  title: 'New Blog Post Title',\n  date: '2025-01-20',\n  authors: ['Author Name'],\n  tags: ['tag1', 'tag2'],\n  image: '/image.jpg',\n  excerpt: 'Blog post excerpt...',\n  content: 'Blog post content...',\n  richContent: [...]\n};\n```\n\n**Blog Preview Snippet:**\n```typescript\nexport const newBlogPreview: BlogPreview = {\n  slug: 'new-blog-post',\n  title: 'New Blog Post Title',\n  date: '2025-01-20',\n  excerpt: 'Blog post excerpt...',\n  image: '/image.jpg'\n};\n```",
         "height": 688,
         "width": 528
       },
       "type": "n8n-nodes-base.stickyNote",
-      "position": [-1920, 1216],
+      "position": [
+        -1504,
+        -656
+      ],
       "typeVersion": 1,
       "id": "0b4c124f-2e9f-47a0-b44f-c036c7d5abd2",
       "name": "Sticky Note1"
-    },
-    {
-      "parameters": {
-        "operation": "formatDate",
-        "date": "={{ $json.createdTime }}",
-        "format": "custom",
-        "customFormat": "dd-MM-yyyy/H:mm",
-        "options": {}
-      },
-      "id": "b377bbcf-d3f7-4da9-9ae4-c4b7e95fb5fe",
-      "name": "Format date1",
-      "type": "n8n-nodes-base.dateTime",
-      "typeVersion": 2,
-      "position": [-800, 2928]
-    },
-    {
-      "parameters": {
-        "keepOnlySet": true,
-        "values": {
-          "string": [
-            {
-              "name": "commitDate",
-              "value": "={{ $json.formattedDate }}"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "50ce46c9-b681-4476-9c00-0ddadb5c30aa",
-      "name": "Set commit date1",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 2,
-      "position": [-592, 2928]
-    },
-    {
-      "parameters": {
-        "resource": "file",
-        "operation": "get",
-        "owner": "chefmatteo",
-        "repository": "Examify.pro-BlogPostContent",
-        "filePath": "data/blogPostContent.ts",
-        "additionalParameters": {}
-      },
-      "id": "6f04a5f3-5d35-4962-9192-a7ca6ffacbde",
-      "name": "Get GitHub blogPostContent.ts1",
-      "type": "n8n-nodes-base.github",
-      "typeVersion": 1,
-      "position": [-16, 2672],
-      "webhookId": "34cc6a71-3da7-430e-ae5b-4b706c5971d7",
-      "credentials": {
-        "githubApi": {
-          "id": "xPxf1slGiyx1TGdN",
-          "name": "chefmatteo_testing_blog_integration"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "functionCode": "// Decode base64 content from GitHub\nconst githubContent = Buffer.from($input.first().json.content, 'base64').toString('utf8');\nreturn [{ json: { githubContent, fileName: 'blogPostContent.ts' } }];"
-      },
-      "id": "8aab4080-6c3e-4c7c-b5cf-9361845a70c8",
-      "name": "Decode GitHub Content1",
-      "type": "n8n-nodes-base.function",
-      "typeVersion": 1,
-      "position": [176, 2672]
-    },
-    {
-      "parameters": {
-        "functionCode": "// Extract and format snippet from downloaded file\nconst snippet = Buffer.from($input.first().json.data, 'base64').toString('utf8');\n\n// Function to convert raw object to proper TypeScript export\nfunction formatSnippetToExport(rawContent) {\n  // Remove any trailing semicolon and whitespace\n  let cleaned = rawContent.trim().replace(/;\\s*$/, '');\n  \n  // If it's already an export statement, return as is\n  if (cleaned.includes('export const newBlogPost')) {\n    return cleaned;\n  }\n  \n  // If it's a raw object, wrap it in export statement\n  if (cleaned.startsWith('{') && cleaned.endsWith('}')) {\n    // Add quotes to property names if missing (convert to valid JSON)\n    let jsonString = cleaned\n      .replace(/(\\w+):/g, '\"$1\":') // Add quotes to property names\n      .replace(/,\\s*}/g, '}') // Remove trailing commas\n      .replace(/,\\s*]/g, ']'); // Remove trailing commas in arrays\n    \n    try {\n      // Validate JSON structure\n      JSON.parse(jsonString);\n      return `export const newBlogPost = ${cleaned};`;\n    } catch (error) {\n      throw new Error(`Invalid object format: ${error.message}`);\n    }\n  }\n  \n  throw new Error('File must contain either a raw object or export const newBlogPost statement');\n}\n\n// Function to validate BlogPostContent structure according to type definition\nfunction validateBlogPostContent(obj) {\n  const errors = [];\n  \n  // Required fields according to BlogPostContent type\n  const requiredFields = {\n    slug: 'string',\n    title: 'string', \n    date: 'string',\n    authors: 'array',\n    tags: 'array',\n    image: 'string'\n  };\n  \n  // Optional fields\n  const optionalFields = {\n    featured: 'boolean',\n    excerpt: 'string',\n    content: 'string',\n    others: 'string',\n    richContent: 'array',\n    links: 'object'\n  };\n  \n  // Check required fields\n  for (const [field, expectedType] of Object.entries(requiredFields)) {\n    if (!(field in obj)) {\n      errors.push(`Missing required field: ${field}`);\n      continue;\n    }\n    \n    const value = obj[field];\n    if (expectedType === 'string' && typeof value !== 'string') {\n      errors.push(`Field '${field}' must be a string, got ${typeof value}`);\n    } else if (expectedType === 'array' && !Array.isArray(value)) {\n      errors.push(`Field '${field}' must be an array, got ${typeof value}`);\n    }\n  }\n  \n  // Check optional fields if present\n  for (const [field, expectedType] of Object.entries(optionalFields)) {\n    if (field in obj) {\n      const value = obj[field];\n      if (expectedType === 'string' && typeof value !== 'string') {\n        errors.push(`Field '${field}' must be a string, got ${typeof value}`);\n      } else if (expectedType === 'boolean' && typeof value !== 'boolean') {\n        errors.push(`Field '${field}' must be a boolean, got ${typeof value}`);\n      } else if (expectedType === 'array' && !Array.isArray(value)) {\n        errors.push(`Field '${field}' must be an array, got ${typeof value}`);\n      } else if (expectedType === 'object' && typeof value !== 'object' || Array.isArray(value)) {\n        errors.push(`Field '${field}' must be an object, got ${typeof value}`);\n      }\n    }\n  }\n  \n  // Validate specific field constraints\n  if (obj.slug && typeof obj.slug === 'string') {\n    if (obj.slug.trim() === '') {\n      errors.push('Field \'slug\' cannot be empty');\n    }\n    if (!/^[a-z0-9-]+$/.test(obj.slug)) {\n      errors.push('Field \'slug\' must contain only lowercase letters, numbers, and hyphens');\n    }\n  }\n  \n  if (obj.date && typeof obj.date === 'string') {\n    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(obj.date)) {\n      errors.push('Field \'date\' must be in YYYY-MM-DD format');\n    }\n  }\n  \n  if (obj.authors && Array.isArray(obj.authors)) {\n    if (obj.authors.length === 0) {\n      errors.push('Field \'authors\' cannot be empty array');\n    }\n    for (const author of obj.authors) {\n      if (typeof author !== 'string') {\n        errors.push('All authors must be strings');\n        break;\n      }\n    }\n  }\n  \n  if (obj.tags && Array.isArray(obj.tags)) {\n    for (const tag of obj.tags) {\n      if (typeof tag !== 'string') {\n        errors.push('All tags must be strings');\n        break;\n      }\n    }\n  }\n  \n  if (obj.richContent && Array.isArray(obj.richContent)) {\n    for (const block of obj.richContent) {\n      if (typeof block !== 'object' || Array.isArray(block)) {\n        errors.push('All richContent blocks must be objects');\n        break;\n      }\n      if (!block.type || !['text', 'image', 'quote', 'subheading'].includes(block.type)) {\n        errors.push('Each richContent block must have a valid type (text, image, quote, subheading)');\n        break;\n      }\n      if (!block.content || typeof block.content !== 'string') {\n        errors.push('Each richContent block must have a content string');\n        break;\n      }\n    }\n  }\n  \n  return errors;\n}\n\n// Format the snippet\nconst formattedSnippet = formatSnippetToExport(snippet);\n\n// Extract the object from the formatted snippet\nconst objectMatch = formattedSnippet.match(/export const newBlogPost\\s*=\\s*(\\{.*?\\});/s);\nif (!objectMatch) {\n  throw new Error('Could not extract object from formatted snippet');\n}\n\n// Parse the object for validation\nlet blogPostObject;\ntry {\n  // Convert to valid JSON for parsing\n  const jsonString = objectMatch[1]\n    .replace(/(\\w+):/g, '\"$1\":') // Add quotes to property names\n    .replace(/,\\s*}/g, '}') // Remove trailing commas\n    .replace(/,\\s*]/g, ']'); // Remove trailing commas in arrays\n  \n  blogPostObject = JSON.parse(jsonString);\n} catch (error) {\n  throw new Error(`Failed to parse blog post object: ${error.message}`);\n}\n\n// Validate the object structure\nconst validationErrors = validateBlogPostContent(blogPostObject);\nif (validationErrors.length > 0) {\n  throw new Error(`Validation errors:\\n${validationErrors.join('\\n')}`);\n}\n\nreturn [{ json: { \n  validSnippet: true, \n  snippet: formattedSnippet, \n  originalSnippet: snippet,\n  fileName: 'blogPostContent-snippet',\n  validatedObject: blogPostObject\n} }];"
-      },
-      "id": "fd9fa6e7-1afe-431e-b526-c15c0c702663",
-      "name": "Validate Snippet1",
-      "type": "n8n-nodes-base.function",
-      "typeVersion": 1,
-      "position": [-16, 2560]
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "string": [
-            {
-              "value1": "={{ $('Validate Snippet1').item.json.snippet }}",
-              "operation": "equals",
-              "value2": "={{ $('Decode GitHub Content1').item.json.githubContent }}"
-            }
-          ]
-        }
-      },
-      "id": "6fe40bb1-414f-4e4e-8619-bd22369d7a00",
-      "name": "Compare Content1",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 1,
-      "position": [368, 2672]
-    },
-    {
-      "parameters": {
-        "functionCode": "// Parse existing GitHub content and merge with new snippet\nconst existingContent = $('Decode GitHub Content').item.json.githubContent;\nconst newSnippet = $('Validate Snippet').item.json.snippet;\n\n// Extract blogPostContent array from existing file\nconst existingMatch = existingContent.match(/export const blogPostContent = (\\[.*?\\]);/s);\nconst existingArray = existingMatch ? JSON.parse(existingMatch[1]) : [];\n\n// Extract new blog post from snippet\nconst snippetMatch = newSnippet.match(/export const newBlogPost = (\\{.*?\\});/s);\nconst newBlogPost = snippetMatch ? JSON.parse(snippetMatch[1]) : null;\n\nif (!newBlogPost) {\n  throw new Error('Invalid snippet format - could not extract newBlogPost');\n}\n\n// Check for duplicate slug\nconst existingSlugs = existingArray.map(post => post.slug);\nif (existingSlugs.includes(newBlogPost.slug)) {\n  throw new Error(`Blog post with slug '${newBlogPost.slug}' already exists`);\n}\n\n// Merge content\nconst mergedArray = [...existingArray, newBlogPost];\n\n// Generate updated TypeScript file\nconst updatedContent = `export const blogPostContent = ${JSON.stringify(mergedArray, null, 2)};`;\n\nreturn [{ json: { mergedContent: updatedContent, newPostCount: mergedArray.length, addedSlug: newBlogPost.slug } }];"
-      },
-      "id": "4513951f-e65d-4402-a3fa-4dc08f201fdf",
-      "name": "Merge Content1",
-      "type": "n8n-nodes-base.function",
-      "typeVersion": 1,
-      "position": [560, 2560]
-    },
-    {
-      "parameters": {
-        "functionCode": "// Check for potential issues in merged content\nconst mergedContent = $input.first().json.mergedContent;\n\n// Validate TypeScript syntax\nif (!mergedContent.includes('export const blogPostContent')) {\n  throw new Error('Merged content missing required export statement');\n}\n\n// Check for valid JSON structure\ntry {\n  const contentMatch = mergedContent.match(/export const blogPostContent = (\\[.*?\\]);/s);\n  if (contentMatch) {\n    JSON.parse(contentMatch[1]);\n  }\n} catch (error) {\n  throw new Error('Invalid JSON structure in merged content');\n}\n\nreturn [{ json: { safeContent: true, contentLength: mergedContent.length } }];"
-      },
-      "id": "2e5db904-1829-42ae-99e5-5984260619f4",
-      "name": "Content Safety Check1",
-      "type": "n8n-nodes-base.function",
-      "typeVersion": 1,
-      "position": [752, 2560]
-    },
-    {
-      "parameters": {
-        "resource": "file",
-        "operation": "edit",
-        "owner": "chefmatteo",
-        "repository": "Examify.pro-BlogPostContent",
-        "filePath": "data/blogPostContent.ts",
-        "commitMessage": "Auto-merge new blog post from Google Drive snippet: {{ $json.formattedDate }}"
-      },
-      "id": "d169ad9e-5bbf-40ae-9b74-2a574f5692f5",
-      "name": "Update GitHub with Merged Content1",
-      "type": "n8n-nodes-base.github",
-      "typeVersion": 1,
-      "position": [944, 2560],
-      "webhookId": "a98db464-52d8-4ddd-ae2b-130696d6af94",
-      "credentials": {
-        "githubApi": {
-          "id": "xPxf1slGiyx1TGdN",
-          "name": "chefmatteo_testing_blog_integration"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "functionCode": "// Log successful merge\nconst addedSlug = $('Merge Content').item.json.addedSlug;\nconst newPostCount = $('Merge Content').item.json.newPostCount;\n\nreturn [{ json: { \n  message: `Successfully merged new blog post: ${addedSlug}`,\n  totalPosts: newPostCount,\n  timestamp: new Date().toISOString(),\n  action: 'merge_success'\n} }];"
-      },
-      "id": "470a099b-b724-4394-839e-eb42b4c4efe7",
-      "name": "Log Success1",
-      "type": "n8n-nodes-base.function",
-      "typeVersion": 1,
-      "position": [1136, 2560]
-    },
-    {
-      "parameters": {
-        "functionCode": "// Log no action needed\nreturn [{ json: { \n  message: 'Content is identical - no update needed',\n  timestamp: new Date().toISOString(),\n  action: 'no_action'\n} }];"
-      },
-      "id": "e46cb4fe-82f8-499b-8436-e024b75e5aa5",
-      "name": "Log No Action1",
-      "type": "n8n-nodes-base.function",
-      "typeVersion": 1,
-      "position": [560, 2784]
-    },
-    {
-      "parameters": {
-        "resource": "file",
-        "operation": "get",
-        "owner": "chefmatteo",
-        "repository": "Examify.pro-BlogPostContent",
-        "filePath": "data/blogPreviews.ts",
-        "additionalParameters": {}
-      },
-      "id": "688933e7-18af-4f3c-98e5-71579e8aaefe",
-      "name": "Get GitHub blogPreviews.ts1",
-      "type": "n8n-nodes-base.github",
-      "typeVersion": 1,
-      "position": [-16, 2864],
-      "webhookId": "d4c8e7ed-d09a-4635-b044-89da55199db7",
-      "credentials": {
-        "githubApi": {
-          "id": "xPxf1slGiyx1TGdN",
-          "name": "chefmatteo_testing_blog_integration"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "functionCode": "// Decode base64 content from GitHub\nconst githubContent = Buffer.from($input.first().json.content, 'base64').toString('utf8');\nreturn [{ json: { githubContent, fileName: 'blogPreviews.ts' } }];"
-      },
-      "id": "144580dc-b232-4927-842c-a511542fa4e5",
-      "name": "Decode GitHub Previews1",
-      "type": "n8n-nodes-base.function",
-      "typeVersion": 1,
-      "position": [176, 2864]
-    },
-    {
-      "parameters": {
-        "functionCode": "// Extract and format preview snippet from downloaded file\nconst snippet = Buffer.from($input.first().json.data, 'base64').toString('utf8');\n\n// Function to convert raw object to proper TypeScript export\nfunction formatPreviewSnippetToExport(rawContent) {\n  // Remove any trailing semicolon and whitespace\n  let cleaned = rawContent.trim().replace(/;\\s*$/, '');\n  \n  // If it's already an export statement, return as is\n  if (cleaned.includes('export const newBlogPreview')) {\n    return cleaned;\n  }\n  \n  // If it's a raw object, wrap it in export statement\n  if (cleaned.startsWith('{') && cleaned.endsWith('}')) {\n    // Add quotes to property names if missing (convert to valid JSON)\n    let jsonString = cleaned\n      .replace(/(\\w+):/g, '\"$1\":') // Add quotes to property names\n      .replace(/,\\s*}/g, '}') // Remove trailing commas\n      .replace(/,\\s*]/g, ']'); // Remove trailing commas in arrays\n    \n    try {\n      // Validate JSON structure\n      JSON.parse(jsonString);\n      return `export const newBlogPreview = ${cleaned};`;\n    } catch (error) {\n      throw new Error(`Invalid object format: ${error.message}`);\n    }\n  }\n  \n  throw new Error('File must contain either a raw object or export const newBlogPreview statement');\n}\n\n// Function to validate BlogPreview structure according to type definition\nfunction validateBlogPreview(obj) {\n  const errors = [];\n  \n  // Required fields according to BlogPreview type\n  const requiredFields = {\n    slug: 'string',\n    title: 'string', \n    date: 'string',\n    authors: 'array',\n    tags: 'array',\n    image: 'string'\n  };\n  \n  // Optional fields\n  const optionalFields = {\n    featured: 'boolean',\n    excerpt: 'string'\n  };\n  \n  // Check required fields\n  for (const [field, expectedType] of Object.entries(requiredFields)) {\n    if (!(field in obj)) {\n      errors.push(`Missing required field: ${field}`);\n      continue;\n    }\n    \n    const value = obj[field];\n    if (expectedType === 'string' && typeof value !== 'string') {\n      errors.push(`Field '${field}' must be a string, got ${typeof value}`);\n    } else if (expectedType === 'array' && !Array.isArray(value)) {\n      errors.push(`Field '${field}' must be an array, got ${typeof value}`);\n    }\n  }\n  \n  // Check optional fields if present\n  for (const [field, expectedType] of Object.entries(optionalFields)) {\n    if (field in obj) {\n      const value = obj[field];\n      if (expectedType === 'string' && typeof value !== 'string') {\n        errors.push(`Field '${field}' must be a string, got ${typeof value}`);\n      } else if (expectedType === 'boolean' && typeof value !== 'boolean') {\n        errors.push(`Field '${field}' must be a boolean, got ${typeof value}`);\n      }\n    }\n  }\n  \n  // Validate specific field constraints\n  if (obj.slug && typeof obj.slug === 'string') {\n    if (obj.slug.trim() === '') {\n      errors.push('Field \'slug\' cannot be empty');\n    }\n    if (!/^[a-z0-9-]+$/.test(obj.slug)) {\n      errors.push('Field \'slug\' must contain only lowercase letters, numbers, and hyphens');\n    }\n  }\n  \n  if (obj.date && typeof obj.date === 'string') {\n    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(obj.date)) {\n      errors.push('Field \'date\' must be in YYYY-MM-DD format');\n    }\n  }\n  \n  if (obj.authors && Array.isArray(obj.authors)) {\n    if (obj.authors.length === 0) {\n      errors.push('Field \'authors\' cannot be empty array');\n    }\n    for (const author of obj.authors) {\n      if (typeof author !== 'string') {\n        errors.push('All authors must be strings');\n        break;\n      }\n    }\n  }\n  \n  if (obj.tags && Array.isArray(obj.tags)) {\n    for (const tag of obj.tags) {\n      if (typeof tag !== 'string') {\n        errors.push('All tags must be strings');\n        break;\n      }\n    }\n  }\n  \n  return errors;\n}\n\n// Format the snippet\nconst formattedSnippet = formatPreviewSnippetToExport(snippet);\n\n// Extract the object from the formatted snippet\nconst objectMatch = formattedSnippet.match(/export const newBlogPreview\\s*=\\s*(\\{.*?\\});/s);\nif (!objectMatch) {\n  throw new Error('Could not extract object from formatted snippet');\n}\n\n// Parse the object for validation\nlet blogPreviewObject;\ntry {\n  // Convert to valid JSON for parsing\n  const jsonString = objectMatch[1]\n    .replace(/(\\w+):/g, '\"$1\":') // Add quotes to property names\n    .replace(/,\\s*}/g, '}') // Remove trailing commas\n    .replace(/,\\s*]/g, ']'); // Remove trailing commas in arrays\n  \n  blogPreviewObject = JSON.parse(jsonString);\n} catch (error) {\n  throw new Error(`Failed to parse blog preview object: ${error.message}`);\n}\n\n// Validate the object structure\nconst validationErrors = validateBlogPreview(blogPreviewObject);\nif (validationErrors.length > 0) {\n  throw new Error(`Validation errors:\\n${validationErrors.join('\\n')}`);\n}\n\nreturn [{ json: { \n  validSnippet: true, \n  snippet: formattedSnippet, \n  originalSnippet: snippet,\n  fileName: 'blogPreviews-snippet',\n  validatedObject: blogPreviewObject\n} }];"
-      },
-      "id": "f6177b94-ce7b-451f-ac8a-a38b8fe1c542",
-      "name": "Validate Preview Snippet1",
-      "type": "n8n-nodes-base.function",
-      "typeVersion": 1,
-      "position": [-16, 2752]
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "string": [
-            {
-              "value1": "={{ $('Validate Preview Snippet1').item.json.snippet }}",
-              "operation": "equals",
-              "value2": "={{ $('Decode GitHub Previews1').item.json.githubContent }}"
-            }
-          ]
-        }
-      },
-      "id": "738d9178-8267-4d52-9a98-b63f9c973388",
-      "name": "Compare Preview Content1",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 1,
-      "position": [368, 2864]
-    },
-    {
-      "parameters": {
-        "functionCode": "// Parse existing GitHub content and merge with new preview snippet\nconst existingContent = $('Decode GitHub Previews').item.json.githubContent;\nconst newSnippet = $('Validate Preview Snippet').item.json.snippet;\n\n// Extract blogPreviews array from existing file\nconst existingMatch = existingContent.match(/export const blogPreviews = (\\[.*?\\]);/s);\nconst existingArray = existingMatch ? JSON.parse(existingMatch[1]) : [];\n\n// Extract new blog preview from snippet\nconst snippetMatch = newSnippet.match(/export const newBlogPreview = (\\{.*?\\});/s);\nconst newBlogPreview = snippetMatch ? JSON.parse(snippetMatch[1]) : null;\n\nif (!newBlogPreview) {\n  throw new Error('Invalid snippet format - could not extract newBlogPreview');\n}\n\n// Check for duplicate slug\nconst existingSlugs = existingArray.map(preview => preview.slug);\nif (existingSlugs.includes(newBlogPreview.slug)) {\n  throw new Error(`Blog preview with slug '${newBlogPreview.slug}' already exists`);\n}\n\n// Merge content\nconst mergedArray = [...existingArray, newBlogPreview];\n\n// Generate updated TypeScript file\nconst updatedContent = `export const blogPreviews = ${JSON.stringify(mergedArray, null, 2)};`;\n\nreturn [{ json: { mergedContent: updatedContent, newPreviewCount: mergedArray.length, addedSlug: newBlogPreview.slug } }];"
-      },
-      "id": "4648a843-ffba-48e5-bc9e-8b4156e5ff30",
-      "name": "Merge Preview Content1",
-      "type": "n8n-nodes-base.function",
-      "typeVersion": 1,
-      "position": [560, 2752]
-    },
-    {
-      "parameters": {
-        "functionCode": "// Check for potential issues in merged preview content\nconst mergedContent = $input.first().json.mergedContent;\n\n// Validate TypeScript syntax\nif (!mergedContent.includes('export const blogPreviews')) {\n  throw new Error('Merged preview content missing required export statement');\n}\n\n// Check for valid JSON structure\ntry {\n  const contentMatch = mergedContent.match(/export const blogPreviews = (\\[.*?\\]);/s);\n  if (contentMatch) {\n    JSON.parse(contentMatch[1]);\n  }\n} catch (error) {\n  throw new Error('Invalid JSON structure in merged preview content');\n}\n\nreturn [{ json: { safeContent: true, contentLength: mergedContent.length } }];"
-      },
-      "id": "a466655a-27f7-47b7-ac0f-a159f2d3313a",
-      "name": "Preview Safety Check1",
-      "type": "n8n-nodes-base.function",
-      "typeVersion": 1,
-      "position": [752, 2752]
-    },
-    {
-      "parameters": {
-        "resource": "file",
-        "operation": "edit",
-        "owner": "chefmatteo",
-        "repository": "Examify.pro-BlogPostContent",
-        "filePath": "data/blogPreviews.ts",
-        "commitMessage": "Auto-merge new blog preview from Google Drive snippet: {{ $json.formattedDate }}"
-      },
-      "id": "47a424e9-fe63-4f21-b175-93c258f281f6",
-      "name": "Update GitHub with Merged Preview1",
-      "type": "n8n-nodes-base.github",
-      "typeVersion": 1,
-      "position": [944, 2752],
-      "webhookId": "8b1ce982-8a6c-49ad-8704-e294ef55d53a",
-      "credentials": {
-        "githubApi": {
-          "id": "xPxf1slGiyx1TGdN",
-          "name": "chefmatteo_testing_blog_integration"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "functionCode": "// Log successful preview merge\nconst addedSlug = $('Merge Preview Content').item.json.addedSlug;\nconst newPreviewCount = $('Merge Preview Content').item.json.newPreviewCount;\n\nreturn [{ json: { \n  message: `Successfully merged new blog preview: ${addedSlug}`,\n  totalPreviews: newPreviewCount,\n  timestamp: new Date().toISOString(),\n  action: 'preview_merge_success'\n} }];"
-      },
-      "id": "6047f8f7-55e8-4aa4-8bfe-16452ef5c01b",
-      "name": "Log Preview Success1",
-      "type": "n8n-nodes-base.function",
-      "typeVersion": 1,
-      "position": [1136, 2752]
-    },
-    {
-      "parameters": {
-        "functionCode": "// Log no action needed for preview\nreturn [{ json: { \n  message: 'Preview content is identical - no update needed',\n  timestamp: new Date().toISOString(),\n  action: 'preview_no_action'\n} }];"
-      },
-      "id": "16a19732-1481-4b1d-ac65-cb064dffb889",
-      "name": "Log Preview No Action1",
-      "type": "n8n-nodes-base.function",
-      "typeVersion": 1,
-      "position": [560, 2976]
     },
     {
       "parameters": {
@@ -431,7 +45,10 @@
       },
       "type": "n8n-nodes-base.googleDrive",
       "typeVersion": 3,
-      "position": [-448, 624],
+      "position": [
+        -448,
+        624
+      ],
       "id": "d3294d3c-0724-4e7d-8b51-ddf76c28e5d4",
       "name": "Search for blogPostContent snippet1",
       "alwaysOutputData": true,
@@ -454,7 +71,10 @@
       },
       "type": "n8n-nodes-base.googleDrive",
       "typeVersion": 3,
-      "position": [-256, 624],
+      "position": [
+        -256,
+        624
+      ],
       "id": "c0ac6cc3-0246-443f-996f-ef851b38d55b",
       "name": "Download snippet from Google Drive1",
       "alwaysOutputData": true,
@@ -478,7 +98,10 @@
       "name": "Get GitHub blogPostContent.ts2",
       "type": "n8n-nodes-base.github",
       "typeVersion": 1,
-      "position": [-64, 640],
+      "position": [
+        -64,
+        640
+      ],
       "webhookId": "73e2fcde-3956-43c7-aca9-f7237fd4ff11",
       "credentials": {
         "githubApi": {
@@ -495,35 +118,23 @@
       "name": "Decode GitHub Content2",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [128, 640]
+      "position": [
+        128,
+        640
+      ]
     },
     {
       "parameters": {
-        "functionCode": "// Extract and format snippet from downloaded file\nconst snippet = Buffer.from($input.first().json.data, 'base64').toString('utf8');\n\n// Function to convert raw object to proper TypeScript export\nfunction formatSnippetToExport(rawContent) {\n  // Remove any trailing semicolon and whitespace\n  let cleaned = rawContent.trim().replace(/;\\s*$/, '');\n  \n  // If it's already an export statement, return as is\n  if (cleaned.includes('export const newBlogPost')) {\n    return cleaned;\n  }\n  \n  // If it's a raw object, wrap it in export statement\n  if (cleaned.startsWith('{') && cleaned.endsWith('}')) {\n    // Add quotes to property names if missing (convert to valid JSON)\n    let jsonString = cleaned\n      .replace(/(\\w+):/g, '\"$1\":') // Add quotes to property names\n      .replace(/,\\s*}/g, '}') // Remove trailing commas\n      .replace(/,\\s*]/g, ']'); // Remove trailing commas in arrays\n    \n    try {\n      // Validate JSON structure\n      JSON.parse(jsonString);\n      return `export const newBlogPost = ${cleaned};`;\n    } catch (error) {\n      throw new Error(`Invalid object format: ${error.message}`);\n    }\n  }\n  \n  throw new Error('File must contain either a raw object or export const newBlogPost statement');\n}\n\n// Function to validate BlogPostContent structure according to type definition\nfunction validateBlogPostContent(obj) {\n  const errors = [];\n  \n  // Required fields according to BlogPostContent type\n  const requiredFields = {\n    slug: 'string',\n    title: 'string', \n    date: 'string',\n    authors: 'array',\n    tags: 'array',\n    image: 'string'\n  };\n  \n  // Optional fields\n  const optionalFields = {\n    featured: 'boolean',\n    excerpt: 'string',\n    content: 'string',\n    others: 'string',\n    richContent: 'array',\n    links: 'object'\n  };\n  \n  // Check required fields\n  for (const [field, expectedType] of Object.entries(requiredFields)) {\n    if (!(field in obj)) {\n      errors.push(`Missing required field: ${field}`);\n      continue;\n    }\n    \n    const value = obj[field];\n    if (expectedType === 'string' && typeof value !== 'string') {\n      errors.push(`Field '${field}' must be a string, got ${typeof value}`);\n    } else if (expectedType === 'array' && !Array.isArray(value)) {\n      errors.push(`Field '${field}' must be an array, got ${typeof value}`);\n    }\n  }\n  \n  // Check optional fields if present\n  for (const [field, expectedType] of Object.entries(optionalFields)) {\n    if (field in obj) {\n      const value = obj[field];\n      if (expectedType === 'string' && typeof value !== 'string') {\n        errors.push(`Field '${field}' must be a string, got ${typeof value}`);\n      } else if (expectedType === 'boolean' && typeof value !== 'boolean') {\n        errors.push(`Field '${field}' must be a boolean, got ${typeof value}`);\n      } else if (expectedType === 'array' && !Array.isArray(value)) {\n        errors.push(`Field '${field}' must be an array, got ${typeof value}`);\n      } else if (expectedType === 'object' && typeof value !== 'object' || Array.isArray(value)) {\n        errors.push(`Field '${field}' must be an object, got ${typeof value}`);\n      }\n    }\n  }\n  \n  // Validate specific field constraints\n  if (obj.slug && typeof obj.slug === 'string') {\n    if (obj.slug.trim() === '') {\n      errors.push('Field \'slug\' cannot be empty');\n    }\n    if (!/^[a-z0-9-]+$/.test(obj.slug)) {\n      errors.push('Field \'slug\' must contain only lowercase letters, numbers, and hyphens');\n    }\n  }\n  \n  if (obj.date && typeof obj.date === 'string') {\n    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(obj.date)) {\n      errors.push('Field \'date\' must be in YYYY-MM-DD format');\n    }\n  }\n  \n  if (obj.authors && Array.isArray(obj.authors)) {\n    if (obj.authors.length === 0) {\n      errors.push('Field \'authors\' cannot be empty array');\n    }\n    for (const author of obj.authors) {\n      if (typeof author !== 'string') {\n        errors.push('All authors must be strings');\n        break;\n      }\n    }\n  }\n  \n  if (obj.tags && Array.isArray(obj.tags)) {\n    for (const tag of obj.tags) {\n      if (typeof tag !== 'string') {\n        errors.push('All tags must be strings');\n        break;\n      }\n    }\n  }\n  \n  if (obj.richContent && Array.isArray(obj.richContent)) {\n    for (const block of obj.richContent) {\n      if (typeof block !== 'object' || Array.isArray(block)) {\n        errors.push('All richContent blocks must be objects');\n        break;\n      }\n      if (!block.type || !['text', 'image', 'quote', 'subheading'].includes(block.type)) {\n        errors.push('Each richContent block must have a valid type (text, image, quote, subheading)');\n        break;\n      }\n      if (!block.content || typeof block.content !== 'string') {\n        errors.push('Each richContent block must have a content string');\n        break;\n      }\n    }\n  }\n  \n  return errors;\n}\n\n// Format the snippet\nconst formattedSnippet = formatSnippetToExport(snippet);\n\n// Extract the object from the formatted snippet\nconst objectMatch = formattedSnippet.match(/export const newBlogPost\\s*=\\s*(\\{.*?\\});/s);\nif (!objectMatch) {\n  throw new Error('Could not extract object from formatted snippet');\n}\n\n// Parse the object for validation\nlet blogPostObject;\ntry {\n  // Convert to valid JSON for parsing\n  const jsonString = objectMatch[1]\n    .replace(/(\\w+):/g, '\"$1\":') // Add quotes to property names\n    .replace(/,\\s*}/g, '}') // Remove trailing commas\n    .replace(/,\\s*]/g, ']'); // Remove trailing commas in arrays\n  \n  blogPostObject = JSON.parse(jsonString);\n} catch (error) {\n  throw new Error(`Failed to parse blog post object: ${error.message}`);\n}\n\n// Validate the object structure\nconst validationErrors = validateBlogPostContent(blogPostObject);\nif (validationErrors.length > 0) {\n  throw new Error(`Validation errors:\\n${validationErrors.join('\\n')}`);\n}\n\nreturn [{ json: { \n  validSnippet: true, \n  snippet: formattedSnippet, \n  originalSnippet: snippet,\n  fileName: 'blogPostContent-snippet',\n  validatedObject: blogPostObject\n} }];"
+        "functionCode": "// Validate snippet format\nconst snippet = Buffer.from($input.first().json.data, 'base64').toString('utf8');\nif (!snippet.includes('export const newBlogPost')) {\n  throw new Error('Snippet must contain \"export const newBlogPost\"');\n}\n\n// Check for required fields\nconst requiredFields = ['slug', 'title', 'date', 'content'];\nconst missingFields = requiredFields.filter(field => !snippet.includes(field));\n\nif (missingFields.length > 0) {\n  throw new Error(`Missing required fields: ${missingFields.join(', ')}`);\n}\n\nreturn [{ json: { validSnippet: true, snippet, fileName: 'blogPostContent-snippet' } }];"
       },
       "id": "75fad90c-e4db-46c6-9ba0-cbb06c4fe360",
       "name": "Validate Snippet2",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [-64, 496]
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "string": [
-            {
-              "value1": "={{ $('Validate Snippet2').item.json.snippet }}",
-              "operation": "equals",
-              "value2": "={{ $('Decode GitHub Content2').item.json.githubContent }}"
-            }
-          ]
-        }
-      },
-      "id": "5e25313b-5348-4ac8-ae9e-2efd38f09d24",
-      "name": "Compare Content2",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 1,
-      "position": [320, 624]
+      "position": [
+        -64,
+        496
+      ]
     },
     {
       "parameters": {
@@ -533,7 +144,10 @@
       "name": "Merge Content2",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [512, 512]
+      "position": [
+        512,
+        512
+      ]
     },
     {
       "parameters": {
@@ -543,7 +157,10 @@
       "name": "Content Safety Check2",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [704, 512]
+      "position": [
+        704,
+        512
+      ]
     },
     {
       "parameters": {
@@ -559,7 +176,10 @@
       "name": "Update GitHub with Merged Content2",
       "type": "n8n-nodes-base.github",
       "typeVersion": 1,
-      "position": [896, 512],
+      "position": [
+        896,
+        512
+      ],
       "webhookId": "a8d0f9e6-87eb-4578-8ce6-9e6f3fa300ae",
       "alwaysOutputData": true,
       "credentials": {
@@ -577,7 +197,10 @@
       "name": "Log Success2",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [1088, 512]
+      "position": [
+        1088,
+        512
+      ]
     },
     {
       "parameters": {
@@ -587,7 +210,10 @@
       "name": "Log No Action2",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [512, 736]
+      "position": [
+        512,
+        736
+      ]
     },
     {
       "parameters": {
@@ -608,7 +234,10 @@
       },
       "type": "n8n-nodes-base.googleDrive",
       "typeVersion": 3,
-      "position": [-448, 832],
+      "position": [
+        -448,
+        832
+      ],
       "id": "244cd3b3-cbd9-4db7-aff1-932942497b77",
       "name": "Search for blogPreviews snippet1",
       "alwaysOutputData": true,
@@ -627,7 +256,10 @@
       },
       "type": "n8n-nodes-base.googleDrive",
       "typeVersion": 3,
-      "position": [-256, 832],
+      "position": [
+        -256,
+        832
+      ],
       "id": "53443d23-b6f7-4cc2-9cf6-28e9539b86e0",
       "name": "Download preview snippet from Google Drive1",
       "credentials": {
@@ -650,7 +282,10 @@
       "name": "Get GitHub blogPreviews.ts2",
       "type": "n8n-nodes-base.github",
       "typeVersion": 1,
-      "position": [-64, 800],
+      "position": [
+        -64,
+        800
+      ],
       "webhookId": "07b62aa6-12b2-42a0-8be4-25a06e2dedde",
       "credentials": {
         "githubApi": {
@@ -661,13 +296,16 @@
     },
     {
       "parameters": {
-        "functionCode": "// Extract and format preview snippet from downloaded file\nconst snippet = Buffer.from($input.first().json.data, 'base64').toString('utf8');\n\n// Function to convert raw object to proper TypeScript export\nfunction formatPreviewSnippetToExport(rawContent) {\n  // Remove any trailing semicolon and whitespace\n  let cleaned = rawContent.trim().replace(/;\\s*$/, '');\n  \n  // If it's already an export statement, return as is\n  if (cleaned.includes('export const newBlogPreview')) {\n    return cleaned;\n  }\n  \n  // If it's a raw object, wrap it in export statement\n  if (cleaned.startsWith('{') && cleaned.endsWith('}')) {\n    // Add quotes to property names if missing (convert to valid JSON)\n    let jsonString = cleaned\n      .replace(/(\\w+):/g, '\"$1\":') // Add quotes to property names\n      .replace(/,\\s*}/g, '}') // Remove trailing commas\n      .replace(/,\\s*]/g, ']'); // Remove trailing commas in arrays\n    \n    try {\n      // Validate JSON structure\n      JSON.parse(jsonString);\n      return `export const newBlogPreview = ${cleaned};`;\n    } catch (error) {\n      throw new Error(`Invalid object format: ${error.message}`);\n    }\n  }\n  \n  throw new Error('File must contain either a raw object or export const newBlogPreview statement');\n}\n\n// Function to validate BlogPreview structure according to type definition\nfunction validateBlogPreview(obj) {\n  const errors = [];\n  \n  // Required fields according to BlogPreview type\n  const requiredFields = {\n    slug: 'string',\n    title: 'string', \n    date: 'string',\n    authors: 'array',\n    tags: 'array',\n    image: 'string'\n  };\n  \n  // Optional fields\n  const optionalFields = {\n    featured: 'boolean',\n    excerpt: 'string'\n  };\n  \n  // Check required fields\n  for (const [field, expectedType] of Object.entries(requiredFields)) {\n    if (!(field in obj)) {\n      errors.push(`Missing required field: ${field}`);\n      continue;\n    }\n    \n    const value = obj[field];\n    if (expectedType === 'string' && typeof value !== 'string') {\n      errors.push(`Field '${field}' must be a string, got ${typeof value}`);\n    } else if (expectedType === 'array' && !Array.isArray(value)) {\n      errors.push(`Field '${field}' must be an array, got ${typeof value}`);\n    }\n  }\n  \n  // Check optional fields if present\n  for (const [field, expectedType] of Object.entries(optionalFields)) {\n    if (field in obj) {\n      const value = obj[field];\n      if (expectedType === 'string' && typeof value !== 'string') {\n        errors.push(`Field '${field}' must be a string, got ${typeof value}`);\n      } else if (expectedType === 'boolean' && typeof value !== 'boolean') {\n        errors.push(`Field '${field}' must be a boolean, got ${typeof value}`);\n      }\n    }\n  }\n  \n  // Validate specific field constraints\n  if (obj.slug && typeof obj.slug === 'string') {\n    if (obj.slug.trim() === '') {\n      errors.push('Field \'slug\' cannot be empty');\n    }\n    if (!/^[a-z0-9-]+$/.test(obj.slug)) {\n      errors.push('Field \'slug\' must contain only lowercase letters, numbers, and hyphens');\n    }\n  }\n  \n  if (obj.date && typeof obj.date === 'string') {\n    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(obj.date)) {\n      errors.push('Field \'date\' must be in YYYY-MM-DD format');\n    }\n  }\n  \n  if (obj.authors && Array.isArray(obj.authors)) {\n    if (obj.authors.length === 0) {\n      errors.push('Field \'authors\' cannot be empty array');\n    }\n    for (const author of obj.authors) {\n      if (typeof author !== 'string') {\n        errors.push('All authors must be strings');\n        break;\n      }\n    }\n  }\n  \n  if (obj.tags && Array.isArray(obj.tags)) {\n    for (const tag of obj.tags) {\n      if (typeof tag !== 'string') {\n        errors.push('All tags must be strings');\n        break;\n      }\n    }\n  }\n  \n  return errors;\n}\n\n// Format the snippet\nconst formattedSnippet = formatPreviewSnippetToExport(snippet);\n\n// Extract the object from the formatted snippet\nconst objectMatch = formattedSnippet.match(/export const newBlogPreview\\s*=\\s*(\\{.*?\\});/s);\nif (!objectMatch) {\n  throw new Error('Could not extract object from formatted snippet');\n}\n\n// Parse the object for validation\nlet blogPreviewObject;\ntry {\n  // Convert to valid JSON for parsing\n  const jsonString = objectMatch[1]\n    .replace(/(\\w+):/g, '\"$1\":') // Add quotes to property names\n    .replace(/,\\s*}/g, '}') // Remove trailing commas\n    .replace(/,\\s*]/g, ']'); // Remove trailing commas in arrays\n  \n  blogPreviewObject = JSON.parse(jsonString);\n} catch (error) {\n  throw new Error(`Failed to parse blog preview object: ${error.message}`);\n}\n\n// Validate the object structure\nconst validationErrors = validateBlogPreview(blogPreviewObject);\nif (validationErrors.length > 0) {\n  throw new Error(`Validation errors:\\n${validationErrors.join('\\n')}`);\n}\n\nreturn [{ json: { \n  validSnippet: true, \n  snippet: formattedSnippet, \n  originalSnippet: snippet,\n  fileName: 'blogPreviews-snippet',\n  validatedObject: blogPreviewObject\n} }];"
+        "functionCode": "// Validate preview snippet format\nconst snippet = Buffer.from($input.first().json.data, 'base64').toString('utf8');\n\n// Check for required export\nif (!snippet.includes('export const newBlogPreview')) {\n  throw new Error('Preview snippet must contain \"export const newBlogPreview\"');\n}\n\n// Check for required fields\nconst requiredFields = ['slug', 'title', 'date', 'excerpt'];\nconst missingFields = requiredFields.filter(field => !snippet.includes(field));\n\nif (missingFields.length > 0) {\n  throw new Error(`Missing required fields: ${missingFields.join(', ')}`);\n}\n\nreturn [{ json: { validSnippet: true, snippet, fileName: 'blogPreviews-snippet' } }];"
       },
       "id": "d1a0ea12-3225-4bfa-b5a3-bb0505989e65",
       "name": "Validate Preview Snippet2",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [-64, 960]
+      "position": [
+        -64,
+        960
+      ]
     },
     {
       "parameters": {
@@ -685,7 +323,10 @@
       "name": "Compare Preview Content2",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
-      "position": [320, 832]
+      "position": [
+        320,
+        832
+      ]
     },
     {
       "parameters": {
@@ -695,7 +336,10 @@
       "name": "Merge Preview Content2",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [512, 928]
+      "position": [
+        512,
+        928
+      ]
     },
     {
       "parameters": {
@@ -705,7 +349,10 @@
       "name": "Preview Safety Check2",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [704, 928]
+      "position": [
+        704,
+        928
+      ]
     },
     {
       "parameters": {
@@ -721,7 +368,10 @@
       "name": "Update GitHub with Merged Preview2",
       "type": "n8n-nodes-base.github",
       "typeVersion": 1,
-      "position": [896, 928],
+      "position": [
+        896,
+        928
+      ],
       "webhookId": "45d18e49-4ac4-471b-af2e-7eec33da7075",
       "credentials": {
         "githubApi": {
@@ -738,7 +388,10 @@
       "name": "Log Preview Success2",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [1088, 928]
+      "position": [
+        1088,
+        928
+      ]
     },
     {
       "parameters": {
@@ -748,7 +401,10 @@
       "name": "Log Preview No Action2",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [512, 1152]
+      "position": [
+        512,
+        1152
+      ]
     },
     {
       "parameters": {
@@ -767,7 +423,10 @@
       "name": "Set commit date2",
       "type": "n8n-nodes-base.set",
       "typeVersion": 2,
-      "position": [-656, 752]
+      "position": [
+        -656,
+        752
+      ]
     },
     {
       "parameters": {
@@ -777,7 +436,10 @@
       "name": "Set date1",
       "type": "n8n-nodes-base.dateTime",
       "typeVersion": 2,
-      "position": [-1088, 752]
+      "position": [
+        -1088,
+        752
+      ]
     },
     {
       "parameters": {
@@ -791,7 +453,10 @@
       "name": "Format date2",
       "type": "n8n-nodes-base.dateTime",
       "typeVersion": 2,
-      "position": [-880, 752]
+      "position": [
+        -880,
+        752
+      ]
     },
     {
       "parameters": {
@@ -801,7 +466,10 @@
       "name": "Decode GitHub Content3",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [112, 816]
+      "position": [
+        112,
+        816
+      ]
     }
   ],
   "connections": {
@@ -810,290 +478,6 @@
         [
           {
             "node": "Set date1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Google Drive Trigger": {
-      "main": [
-        [
-          {
-            "node": "Download file from Google Drive",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Download file from Google Drive": {
-      "main": [
-        [
-          {
-            "node": "Format date1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Switch": {
-      "main": [
-        [
-          {
-            "node": "Validate Snippet1",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Get GitHub blogPostContent.ts1",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Validate Preview Snippet1",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Get GitHub blogPreviews.ts1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Format date1": {
-      "main": [
-        [
-          {
-            "node": "Set commit date1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Set commit date1": {
-      "main": [
-        [
-          {
-            "node": "Switch",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get GitHub blogPostContent.ts1": {
-      "main": [
-        [
-          {
-            "node": "Decode GitHub Content1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Decode GitHub Content1": {
-      "main": [
-        [
-          {
-            "node": "Compare Content1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Validate Snippet1": {
-      "main": [
-        [
-          {
-            "node": "Compare Content1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Compare Content1": {
-      "main": [
-        [
-          {
-            "node": "Merge Content1",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Log No Action1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Merge Content1": {
-      "main": [
-        [
-          {
-            "node": "Content Safety Check1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Content Safety Check1": {
-      "main": [
-        [
-          {
-            "node": "Update GitHub with Merged Content1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Update GitHub with Merged Content1": {
-      "main": [
-        [
-          {
-            "node": "Log Success1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Log Success1": {
-      "main": [
-        [
-          {
-            "node": "POST to Discord Webhook",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Log No Action1": {
-      "main": [
-        [
-          {
-            "node": "POST to Discord Webhook",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get GitHub blogPreviews.ts1": {
-      "main": [
-        [
-          {
-            "node": "Decode GitHub Previews1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Decode GitHub Previews1": {
-      "main": [
-        [
-          {
-            "node": "Compare Preview Content1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Validate Preview Snippet1": {
-      "main": [
-        [
-          {
-            "node": "Compare Preview Content1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Compare Preview Content1": {
-      "main": [
-        [
-          {
-            "node": "Merge Preview Content1",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Log Preview No Action1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Merge Preview Content1": {
-      "main": [
-        [
-          {
-            "node": "Preview Safety Check1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Preview Safety Check1": {
-      "main": [
-        [
-          {
-            "node": "Update GitHub with Merged Preview1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Update GitHub with Merged Preview1": {
-      "main": [
-        [
-          {
-            "node": "Log Preview Success1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Log Preview Success1": {
-      "main": [
-        [
-          {
-            "node": "POST to Discord Webhook",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Log Preview No Action1": {
-      "main": [
-        [
-          {
-            "node": "POST to Discord Webhook",
             "type": "main",
             "index": 0
           }
@@ -1142,7 +526,7 @@
       "main": [
         [
           {
-            "node": "Compare Content2",
+            "node": "Merge Content2",
             "type": "main",
             "index": 0
           }
@@ -1153,25 +537,7 @@
       "main": [
         [
           {
-            "node": "Compare Content2",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Compare Content2": {
-      "main": [
-        [
-          {
             "node": "Merge Content2",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Log No Action2",
             "type": "main",
             "index": 0
           }
