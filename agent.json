@@ -1,0 +1,218 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "model": "anthropic/claude-3.7-sonnet:thinking",
+        "options": {
+          "responseFormat": "json_object"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [-848, 4816],
+      "id": "b72ae4d3-ade3-4304-8378-721c8349adb5",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "2VmSLybh4blgPyNI",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Send discord notification to webhook when done or if there's any error in parsing the code.",
+        "method": "POST",
+        "url": "https://discord.com/api/webhooks/1410105152819429386/R-skMAbCsJKWHPIpCiiXGXEoJJMC4KuPrqVIskKxUE57Rc4qkWwjz9oiNhdIH6VvkOhV",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('JSON', ``, 'json') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [-240, 4816],
+      "id": "53fe312f-b2eb-461b-a49f-a53a9f4bdf5f",
+      "name": "notify_via_discord"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "operation": "edit",
+        "owner": {
+          "__rl": true,
+          "value": "https://github.com/chefmatteo",
+          "mode": "url"
+        },
+        "repository": {
+          "__rl": true,
+          "value": "Examify.pro-BlogPostContent",
+          "mode": "list",
+          "cachedResultName": "Examify.pro-BlogPostContent",
+          "cachedResultUrl": "https://github.com/MarzukhAsjad/Examify.pro-BlogPostContent"
+        },
+        "filePath": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('File_Path', ``, 'string') }}",
+        "fileContent": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('File_Content', ``, 'string') }}",
+        "commitMessage": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Commit_Message', ``, 'string') }}",
+        "additionalParameters": {
+          "author": {
+            "name": "n8n-testing"
+          }
+        }
+      },
+      "type": "n8n-nodes-base.githubTool",
+      "typeVersion": 1.1,
+      "position": [-368, 4816],
+      "id": "23beb594-2271-40fb-a39a-f0e97f6007b8",
+      "name": "update_code",
+      "webhookId": "2df81bcd-344e-4f3b-bb9a-7352cfc32001",
+      "credentials": {
+        "githubApi": {
+          "id": "xPxf1slGiyx1TGdN",
+          "name": "chefmatteo_testing_blog_integration"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "file",
+        "operation": "get",
+        "owner": {
+          "__rl": true,
+          "value": "https://github.com/chefmatteo",
+          "mode": "url"
+        },
+        "repository": {
+          "__rl": true,
+          "value": "Examify.pro-BlogPostContent",
+          "mode": "list",
+          "cachedResultName": "Examify.pro-BlogPostContent",
+          "cachedResultUrl": "https://github.com/MarzukhAsjad/Examify.pro-BlogPostContent"
+        },
+        "filePath": "data/blogPreviews.ts",
+        "asBinaryProperty": false,
+        "additionalParameters": {}
+      },
+      "type": "n8n-nodes-base.githubTool",
+      "typeVersion": 1.1,
+      "position": [-528, 4816],
+      "id": "10f26413-7eef-456f-970f-8faaed9d84cc",
+      "name": "get_current_blog_preview",
+      "webhookId": "1d77ddca-aa19-4ba0-960f-07026862401c",
+      "credentials": {
+        "githubOAuth2Api": {
+          "id": "2ttoouxxCeFrOrgW",
+          "name": "GitHub account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "operation": "get",
+        "owner": {
+          "__rl": true,
+          "value": "https://github.com/chefmatteo",
+          "mode": "url"
+        },
+        "repository": {
+          "__rl": true,
+          "value": "Examify.pro-BlogPostContent",
+          "mode": "list",
+          "cachedResultName": "Examify.pro-BlogPostContent",
+          "cachedResultUrl": "https://github.com/MarzukhAsjad/Examify.pro-BlogPostContent"
+        },
+        "filePath": "data/blogPostContent.ts",
+        "asBinaryProperty": false,
+        "additionalParameters": {}
+      },
+      "type": "n8n-nodes-base.githubTool",
+      "typeVersion": 1.1,
+      "position": [-688, 4816],
+      "id": "3f5984c0-2bbe-42e9-833b-6432f3137527",
+      "name": "get_current_blog_post_content",
+      "webhookId": "b7c09ced-59ec-402b-a72d-b2918e8cc171",
+      "credentials": {
+        "githubApi": {
+          "id": "xPxf1slGiyx1TGdN",
+          "name": "chefmatteo_testing_blog_integration"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an agent that updates the correct GitHub file according to the Smart File Classification system. You will be given a code snippet that represents either a blog post content or a blog preview, along with information about the source file.\n\n**SMART FILE CLASSIFICATION SYSTEM:**\n- Files containing `C_auto` in their name → Blog Post Content processing → Update `data/blogPostContent.ts`\n- Files containing `P_auto` in their name → Blog Preview processing → Update `data/blogPreviews.ts`\n- Invalid files (no C_auto or P_auto) → Error logging and Discord notification\n\n**YOUR PROCESS:**\n1. **Analyze the input**: Check if the snippet contains `C_auto` or `P_auto` in the file information\n2. **Determine file type**:\n   - If `C_auto` → Process as Blog Post Content → Target file: `data/blogPostContent.ts`\n   - If `P_auto` → Process as Blog Preview → Target file: `data/blogPreviews.ts`\n   - If neither → Log error and send Discord notification\n3. **Fetch current content**: Use the appropriate tool (`get_current_blog_post_content` or `get_current_blog_preview`) to get the current file content\n4. **Merge content**: Add the new snippet to the existing array, ensuring no duplicate slugs\n5. **Update GitHub**: Use `update_code` tool with the correct file path:\n   - Blog Post Content: `data/blogPostContent.ts`\n   - Blog Preview: `data/blogPreviews.ts`\n6. **Notify**: Use `notify_via_discord` to send success/error notifications\n\n**COMMIT MESSAGE FORMAT:**\n- Blog Post Content: `Auto-merge AI-generated blog post: [timestamp]`\n- Blog Preview: `Auto-merge AI-generated blog preview: [timestamp]`\n\n**ERROR HANDLING:**\n- If file doesn't contain `C_auto` or `P_auto` → Send error notification via Discord\n- If duplicate slug found → Send error notification via Discord\n- If parsing fails → Send error notification via Discord\n\nYour main job is to ensure the Smart File Classification system is followed and the correct GitHub file is updated based on the naming convention.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [-688, 4576],
+      "id": "0338df20-2dc5-4b5f-9505-4e69d67b9352",
+      "name": "Code Merge Agent"
+    }
+  ],
+  "connections": {
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Code Merge Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "notify_via_discord": {
+      "ai_tool": [
+        [
+          {
+            "node": "Code Merge Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "update_code": {
+      "ai_tool": [
+        [
+          {
+            "node": "Code Merge Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_current_blog_preview": {
+      "ai_tool": [
+        [
+          {
+            "node": "Code Merge Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_current_blog_post_content": {
+      "ai_tool": [
+        [
+          {
+            "node": "Code Merge Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7efb57ee463638d3638e3e4571358ef61feadec8ab43d6c81603ac733931cb3a"
+  }
+}
